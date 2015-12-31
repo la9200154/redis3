@@ -42,105 +42,105 @@ void slotToKeyFlush(void);
  *----------------------------------------------------------------------------*/
 
 /*
- * ä»æ•°æ®åº“ db ä¸­å–å‡ºé”® key çš„å€¼ï¼ˆå¯¹è±¡ï¼‰
+ * ´ÓÊı¾İ¿â db ÖĞÈ¡³ö¼ü key µÄÖµ£¨¶ÔÏó£©
  *
- * å¦‚æœ key çš„å€¼å­˜åœ¨ï¼Œé‚£ä¹ˆè¿”å›è¯¥å€¼ï¼›å¦åˆ™ï¼Œè¿”å› NULL ã€‚
+ * Èç¹û key µÄÖµ´æÔÚ£¬ÄÇÃ´·µ»Ø¸ÃÖµ£»·ñÔò£¬·µ»Ø NULL ¡£
  */
 robj *lookupKey(redisDb *db, robj *key) {
 
-    // æŸ¥æ‰¾é”®ç©ºé—´
+    // ²éÕÒ¼ü¿Õ¼ä
     dictEntry *de = dictFind(db->dict,key->ptr);
 
-    // èŠ‚ç‚¹å­˜åœ¨
+    // ½Úµã´æÔÚ
     if (de) {
         
 
-        // å–å‡ºå€¼
+        // È¡³öÖµ
         robj *val = dictGetVal(de);
 
         /* Update the access time for the ageing algorithm.
          * Don't do it if we have a saving child, as this will trigger
          * a copy on write madness. */
-        // æ›´æ–°æ—¶é—´ä¿¡æ¯ï¼ˆåªåœ¨ä¸å­˜åœ¨å­è¿›ç¨‹æ—¶æ‰§è¡Œï¼Œé˜²æ­¢ç ´å copy-on-write æœºåˆ¶ï¼‰
+        // ¸üĞÂÊ±¼äĞÅÏ¢£¨Ö»ÔÚ²»´æÔÚ×Ó½ø³ÌÊ±Ö´ĞĞ£¬·ÀÖ¹ÆÆ»µ copy-on-write »úÖÆ£©
         if (server.rdb_child_pid == -1 && server.aof_child_pid == -1)
             val->lru = LRU_CLOCK();
 
-        // è¿”å›å€¼
+        // ·µ»ØÖµ
         return val;
     } else {
 
-        // èŠ‚ç‚¹ä¸å­˜åœ¨
+        // ½Úµã²»´æÔÚ
 
         return NULL;
     }
 }
 
 /*
- * ä¸ºæ‰§è¡Œè¯»å–æ“ä½œè€Œå–å‡ºé”® key åœ¨æ•°æ®åº“ db ä¸­çš„å€¼ã€‚
+ * ÎªÖ´ĞĞ¶ÁÈ¡²Ù×÷¶øÈ¡³ö¼ü key ÔÚÊı¾İ¿â db ÖĞµÄÖµ¡£
  *
- * å¹¶æ ¹æ®æ˜¯å¦æˆåŠŸæ‰¾åˆ°å€¼ï¼Œæ›´æ–°æœåŠ¡å™¨çš„å‘½ä¸­/ä¸å‘½ä¸­ä¿¡æ¯ã€‚
+ * ²¢¸ù¾İÊÇ·ñ³É¹¦ÕÒµ½Öµ£¬¸üĞÂ·şÎñÆ÷µÄÃüÖĞ/²»ÃüÖĞĞÅÏ¢¡£
  *
- * æ‰¾åˆ°æ—¶è¿”å›å€¼å¯¹è±¡ï¼Œæ²¡æ‰¾åˆ°è¿”å› NULL ã€‚
+ * ÕÒµ½Ê±·µ»ØÖµ¶ÔÏó£¬Ã»ÕÒµ½·µ»Ø NULL ¡£
  */
 robj *lookupKeyRead(redisDb *db, robj *key) {
     robj *val;
 
-    // æ£€æŸ¥ key é‡Šæ”¾å·²ç»è¿‡æœŸ
+    // ¼ì²é key ÊÍ·ÅÒÑ¾­¹ıÆÚ
     expireIfNeeded(db,key);
 
-    // ä»æ•°æ®åº“ä¸­å–å‡ºé”®çš„å€¼
+    // ´ÓÊı¾İ¿âÖĞÈ¡³ö¼üµÄÖµ
     val = lookupKey(db,key);
 
-    // æ›´æ–°å‘½ä¸­/ä¸å‘½ä¸­ä¿¡æ¯
+    // ¸üĞÂÃüÖĞ/²»ÃüÖĞĞÅÏ¢
     if (val == NULL)
         server.stat_keyspace_misses++;
     else
         server.stat_keyspace_hits++;
 
-    // è¿”å›å€¼
+    // ·µ»ØÖµ
     return val;
 }
 
 /*
- * ä¸ºæ‰§è¡Œå†™å…¥æ“ä½œè€Œå–å‡ºé”® key åœ¨æ•°æ®åº“ db ä¸­çš„å€¼ã€‚
+ * ÎªÖ´ĞĞĞ´Èë²Ù×÷¶øÈ¡³ö¼ü key ÔÚÊı¾İ¿â db ÖĞµÄÖµ¡£
  *
- * å’Œ lookupKeyRead ä¸åŒï¼Œè¿™ä¸ªå‡½æ•°ä¸ä¼šæ›´æ–°æœåŠ¡å™¨çš„å‘½ä¸­/ä¸å‘½ä¸­ä¿¡æ¯ã€‚
+ * ºÍ lookupKeyRead ²»Í¬£¬Õâ¸öº¯Êı²»»á¸üĞÂ·şÎñÆ÷µÄÃüÖĞ/²»ÃüÖĞĞÅÏ¢¡£
  *
- * æ‰¾åˆ°æ—¶è¿”å›å€¼å¯¹è±¡ï¼Œæ²¡æ‰¾åˆ°è¿”å› NULL ã€‚
+ * ÕÒµ½Ê±·µ»ØÖµ¶ÔÏó£¬Ã»ÕÒµ½·µ»Ø NULL ¡£
  */
 robj *lookupKeyWrite(redisDb *db, robj *key) {
 
-    // åˆ é™¤è¿‡æœŸé”®
+    // É¾³ı¹ıÆÚ¼ü
     expireIfNeeded(db,key);
 
-    // æŸ¥æ‰¾å¹¶è¿”å› key çš„å€¼å¯¹è±¡
+    // ²éÕÒ²¢·µ»Ø key µÄÖµ¶ÔÏó
     return lookupKey(db,key);
 }
 
 /*
- * ä¸ºæ‰§è¡Œè¯»å–æ“ä½œè€Œä»æ•°æ®åº“ä¸­æŸ¥æ‰¾è¿”å› key çš„å€¼ã€‚
+ * ÎªÖ´ĞĞ¶ÁÈ¡²Ù×÷¶ø´ÓÊı¾İ¿âÖĞ²éÕÒ·µ»Ø key µÄÖµ¡£
  *
- * å¦‚æœ key å­˜åœ¨ï¼Œé‚£ä¹ˆè¿”å› key çš„å€¼å¯¹è±¡ã€‚
+ * Èç¹û key ´æÔÚ£¬ÄÇÃ´·µ»Ø key µÄÖµ¶ÔÏó¡£
  *
- * å¦‚æœ key ä¸å­˜åœ¨ï¼Œé‚£ä¹ˆå‘å®¢æˆ·ç«¯å‘é€ reply å‚æ•°ä¸­çš„ä¿¡æ¯ï¼Œå¹¶è¿”å› NULL ã€‚
+ * Èç¹û key ²»´æÔÚ£¬ÄÇÃ´Ïò¿Í»§¶Ë·¢ËÍ reply ²ÎÊıÖĞµÄĞÅÏ¢£¬²¢·µ»Ø NULL ¡£
  */
 robj *lookupKeyReadOrReply(redisClient *c, robj *key, robj *reply) {
 
-    // æŸ¥æ‰¾
+    // ²éÕÒ
     robj *o = lookupKeyRead(c->db, key);
 
-    // å†³å®šæ˜¯å¦å‘é€ä¿¡æ¯
+    // ¾ö¶¨ÊÇ·ñ·¢ËÍĞÅÏ¢
     if (!o) addReply(c,reply);
 
     return o;
 }
 
 /*
- * ä¸ºæ‰§è¡Œå†™å…¥æ“ä½œè€Œä»æ•°æ®åº“ä¸­æŸ¥æ‰¾è¿”å› key çš„å€¼ã€‚
+ * ÎªÖ´ĞĞĞ´Èë²Ù×÷¶ø´ÓÊı¾İ¿âÖĞ²éÕÒ·µ»Ø key µÄÖµ¡£
  *
- * å¦‚æœ key å­˜åœ¨ï¼Œé‚£ä¹ˆè¿”å› key çš„å€¼å¯¹è±¡ã€‚
+ * Èç¹û key ´æÔÚ£¬ÄÇÃ´·µ»Ø key µÄÖµ¶ÔÏó¡£
  *
- * å¦‚æœ key ä¸å­˜åœ¨ï¼Œé‚£ä¹ˆå‘å®¢æˆ·ç«¯å‘é€ reply å‚æ•°ä¸­çš„ä¿¡æ¯ï¼Œå¹¶è¿”å› NULL ã€‚
+ * Èç¹û key ²»´æÔÚ£¬ÄÇÃ´Ïò¿Í»§¶Ë·¢ËÍ reply ²ÎÊıÖĞµÄĞÅÏ¢£¬²¢·µ»Ø NULL ¡£
  */
 
 robj *lookupKeyWriteOrReply(redisClient *c, robj *key, robj *reply) {
@@ -155,73 +155,73 @@ robj *lookupKeyWriteOrReply(redisClient *c, robj *key, robj *reply) {
 /* Add the key to the DB. It's up to the caller to increment the reference
  * counter of the value if needed.
  *
- * å°è¯•å°†é”®å€¼å¯¹ key å’Œ val æ·»åŠ åˆ°æ•°æ®åº“ä¸­ã€‚
+ * ³¢ÊÔ½«¼üÖµ¶Ô key ºÍ val Ìí¼Óµ½Êı¾İ¿âÖĞ¡£
  *
- * è°ƒç”¨è€…è´Ÿè´£å¯¹ key å’Œ val çš„å¼•ç”¨è®¡æ•°è¿›è¡Œå¢åŠ ã€‚
+ * µ÷ÓÃÕß¸ºÔğ¶Ô key ºÍ val µÄÒıÓÃ¼ÆÊı½øĞĞÔö¼Ó¡£
  *
  * The program is aborted if the key already exists. 
  *
- * ç¨‹åºåœ¨é”®å·²ç»å­˜åœ¨æ—¶ä¼šåœæ­¢ã€‚
+ * ³ÌĞòÔÚ¼üÒÑ¾­´æÔÚÊ±»áÍ£Ö¹¡£
  */
 void dbAdd(redisDb *db, robj *key, robj *val) {
 
-    // å¤åˆ¶é”®å
+    // ¸´ÖÆ¼üÃû
     sds copy = sdsdup(key->ptr);
 
-    // å°è¯•æ·»åŠ é”®å€¼å¯¹
+    // ³¢ÊÔÌí¼Ó¼üÖµ¶Ô
     int retval = dictAdd(db->dict, copy, val);
 
-    // å¦‚æœé”®å·²ç»å­˜åœ¨ï¼Œé‚£ä¹ˆåœæ­¢
+    // Èç¹û¼üÒÑ¾­´æÔÚ£¬ÄÇÃ´Í£Ö¹
     redisAssertWithInfo(NULL,key,retval == REDIS_OK);
 
-    // å¦‚æœå¼€å¯äº†é›†ç¾¤æ¨¡å¼ï¼Œé‚£ä¹ˆå°†é”®ä¿å­˜åˆ°æ§½é‡Œé¢
+    // Èç¹û¿ªÆôÁË¼¯ÈºÄ£Ê½£¬ÄÇÃ´½«¼ü±£´æµ½²ÛÀïÃæ
     if (server.cluster_enabled) slotToKeyAdd(key);
  }
 
 /* Overwrite an existing key with a new value. Incrementing the reference
  * count of the new value is up to the caller.
  *
- * ä¸ºå·²å­˜åœ¨çš„é”®å…³è”ä¸€ä¸ªæ–°å€¼ã€‚
+ * ÎªÒÑ´æÔÚµÄ¼ü¹ØÁªÒ»¸öĞÂÖµ¡£
  *
- * è°ƒç”¨è€…è´Ÿè´£å¯¹æ–°å€¼ val çš„å¼•ç”¨è®¡æ•°è¿›è¡Œå¢åŠ ã€‚
+ * µ÷ÓÃÕß¸ºÔğ¶ÔĞÂÖµ val µÄÒıÓÃ¼ÆÊı½øĞĞÔö¼Ó¡£
  *
  * This function does not modify the expire time of the existing key.
  *
- * è¿™ä¸ªå‡½æ•°ä¸ä¼šä¿®æ”¹é”®çš„è¿‡æœŸæ—¶é—´ã€‚
+ * Õâ¸öº¯Êı²»»áĞŞ¸Ä¼üµÄ¹ıÆÚÊ±¼ä¡£
  *
  * The program is aborted if the key was not already present. 
  *
- * å¦‚æœé”®ä¸å­˜åœ¨ï¼Œé‚£ä¹ˆå‡½æ•°åœæ­¢ã€‚
+ * Èç¹û¼ü²»´æÔÚ£¬ÄÇÃ´º¯ÊıÍ£Ö¹¡£
  */
 void dbOverwrite(redisDb *db, robj *key, robj *val) {
     dictEntry *de = dictFind(db->dict,key->ptr);
     
-    // èŠ‚ç‚¹å¿…é¡»å­˜åœ¨ï¼Œå¦åˆ™ä¸­æ­¢
+    // ½Úµã±ØĞë´æÔÚ£¬·ñÔòÖĞÖ¹
     redisAssertWithInfo(NULL,key,de != NULL);
 
-    // è¦†å†™æ—§å€¼
+    // ¸²Ğ´¾ÉÖµ
     dictReplace(db->dict, key->ptr, val);
 }
 
 /* High level Set operation. This function can be used in order to set
  * a key, whatever it was existing or not, to a new object.
  *
- * é«˜å±‚æ¬¡çš„ SET æ“ä½œå‡½æ•°ã€‚
+ * ¸ß²ã´ÎµÄ SET ²Ù×÷º¯Êı¡£
  *
- * è¿™ä¸ªå‡½æ•°å¯ä»¥åœ¨ä¸ç®¡é”® key æ˜¯å¦å­˜åœ¨çš„æƒ…å†µä¸‹ï¼Œå°†å®ƒå’Œ val å…³è”èµ·æ¥ã€‚
+ * Õâ¸öº¯Êı¿ÉÒÔÔÚ²»¹Ü¼ü key ÊÇ·ñ´æÔÚµÄÇé¿öÏÂ£¬½«ËüºÍ val ¹ØÁªÆğÀ´¡£
  *
  * 1) The ref count of the value object is incremented.
- *    å€¼å¯¹è±¡çš„å¼•ç”¨è®¡æ•°ä¼šè¢«å¢åŠ 
+ *    Öµ¶ÔÏóµÄÒıÓÃ¼ÆÊı»á±»Ôö¼Ó
  *
  * 2) clients WATCHing for the destination key notified.
- *    ç›‘è§†é”® key çš„å®¢æˆ·ç«¯ä¼šæ”¶åˆ°é”®å·²ç»è¢«ä¿®æ”¹çš„é€šçŸ¥
+ *    ¼àÊÓ¼ü key µÄ¿Í»§¶Ë»áÊÕµ½¼üÒÑ¾­±»ĞŞ¸ÄµÄÍ¨Öª
  *
  * 3) The expire time of the key is reset (the key is made persistent). 
- *    é”®çš„è¿‡æœŸæ—¶é—´ä¼šè¢«ç§»é™¤ï¼ˆé”®å˜ä¸ºæŒä¹…çš„ï¼‰
+ *    ¼üµÄ¹ıÆÚÊ±¼ä»á±»ÒÆ³ı£¨¼ü±äÎª³Ö¾ÃµÄ£©
  */
 void setKey(redisDb *db, robj *key, robj *val) {
 
-    // æ·»åŠ æˆ–è¦†å†™æ•°æ®åº“ä¸­çš„é”®å€¼å¯¹
+    // Ìí¼Ó»ò¸²Ğ´Êı¾İ¿âÖĞµÄ¼üÖµ¶Ô
     if (lookupKeyWrite(db,key) == NULL) {
         dbAdd(db,key,val);
     } else {
@@ -230,15 +230,15 @@ void setKey(redisDb *db, robj *key, robj *val) {
 
     incrRefCount(val);
 
-    // ç§»é™¤é”®çš„è¿‡æœŸæ—¶é—´
+    // ÒÆ³ı¼üµÄ¹ıÆÚÊ±¼ä
     removeExpire(db,key);
 
-    // å‘é€é”®ä¿®æ”¹é€šçŸ¥
+    // ·¢ËÍ¼üĞŞ¸ÄÍ¨Öª
     signalModifiedKey(db,key);
 }
 
 /*
- * æ£€æŸ¥é”® key æ˜¯å¦å­˜åœ¨äºæ•°æ®åº“ä¸­ï¼Œå­˜åœ¨è¿”å› 1 ï¼Œä¸å­˜åœ¨è¿”å› 0 ã€‚
+ * ¼ì²é¼ü key ÊÇ·ñ´æÔÚÓÚÊı¾İ¿âÖĞ£¬´æÔÚ·µ»Ø 1 £¬²»´æÔÚ·µ»Ø 0 ¡£
  */
 int dbExists(redisDb *db, robj *key) {
     return dictFind(db->dict,key->ptr) != NULL;
@@ -247,13 +247,13 @@ int dbExists(redisDb *db, robj *key) {
 /* Return a random key, in form of a Redis object.
  * If there are no keys, NULL is returned.
  *
- * éšæœºä»æ•°æ®åº“ä¸­å–å‡ºä¸€ä¸ªé”®ï¼Œå¹¶ä»¥å­—ç¬¦ä¸²å¯¹è±¡çš„æ–¹å¼è¿”å›è¿™ä¸ªé”®ã€‚
+ * Ëæ»ú´ÓÊı¾İ¿âÖĞÈ¡³öÒ»¸ö¼ü£¬²¢ÒÔ×Ö·û´®¶ÔÏóµÄ·½Ê½·µ»ØÕâ¸ö¼ü¡£
  *
- * å¦‚æœæ•°æ®åº“ä¸ºç©ºï¼Œé‚£ä¹ˆè¿”å› NULL ã€‚
+ * Èç¹ûÊı¾İ¿âÎª¿Õ£¬ÄÇÃ´·µ»Ø NULL ¡£
  *
  * The function makes sure to return keys not already expired. 
  *
- * è¿™ä¸ªå‡½æ•°ä¿è¯è¢«è¿”å›çš„é”®éƒ½æ˜¯æœªè¿‡æœŸçš„ã€‚
+ * Õâ¸öº¯Êı±£Ö¤±»·µ»ØµÄ¼ü¶¼ÊÇÎ´¹ıÆÚµÄ¡£
  */
 robj *dbRandomKey(redisDb *db) {
     dictEntry *de;
@@ -262,50 +262,50 @@ robj *dbRandomKey(redisDb *db) {
         sds key;
         robj *keyobj;
 
-        // ä»é”®ç©ºé—´ä¸­éšæœºå–å‡ºä¸€ä¸ªé”®èŠ‚ç‚¹
+        // ´Ó¼ü¿Õ¼äÖĞËæ»úÈ¡³öÒ»¸ö¼ü½Úµã
         de = dictGetRandomKey(db->dict);
 
-        // æ•°æ®åº“ä¸ºç©º
+        // Êı¾İ¿âÎª¿Õ
         if (de == NULL) return NULL;
 
-        // å–å‡ºé”®
+        // È¡³ö¼ü
         key = dictGetKey(de);
-        // ä¸ºé”®åˆ›å»ºä¸€ä¸ªå­—ç¬¦ä¸²å¯¹è±¡ï¼Œå¯¹è±¡çš„å€¼ä¸ºé”®çš„åå­—
+        // Îª¼ü´´½¨Ò»¸ö×Ö·û´®¶ÔÏó£¬¶ÔÏóµÄÖµÎª¼üµÄÃû×Ö
         keyobj = createStringObject(key,sdslen(key));
-        // æ£€æŸ¥é”®æ˜¯å¦å¸¦æœ‰è¿‡æœŸæ—¶é—´
+        // ¼ì²é¼üÊÇ·ñ´øÓĞ¹ıÆÚÊ±¼ä
         if (dictFind(db->expires,key)) {
-            // å¦‚æœé”®å·²ç»è¿‡æœŸï¼Œé‚£ä¹ˆå°†å®ƒåˆ é™¤ï¼Œå¹¶ç»§ç»­éšæœºä¸‹ä¸ªé”®
+            // Èç¹û¼üÒÑ¾­¹ıÆÚ£¬ÄÇÃ´½«ËüÉ¾³ı£¬²¢¼ÌĞøËæ»úÏÂ¸ö¼ü
             if (expireIfNeeded(db,keyobj)) {
                 decrRefCount(keyobj);
                 continue; /* search for another key. This expired. */
             }
         }
 
-        // è¿”å›è¢«éšæœºåˆ°çš„é”®ï¼ˆçš„åå­—ï¼‰
+        // ·µ»Ø±»Ëæ»úµ½µÄ¼ü£¨µÄÃû×Ö£©
         return keyobj;
     }
 }
 
 /* Delete a key, value, and associated expiration entry if any, from the DB 
  *
- * ä»æ•°æ®åº“ä¸­åˆ é™¤ç»™å®šçš„é”®ï¼Œé”®çš„å€¼ï¼Œä»¥åŠé”®çš„è¿‡æœŸæ—¶é—´ã€‚
+ * ´ÓÊı¾İ¿âÖĞÉ¾³ı¸ø¶¨µÄ¼ü£¬¼üµÄÖµ£¬ÒÔ¼°¼üµÄ¹ıÆÚÊ±¼ä¡£
  *
- * åˆ é™¤æˆåŠŸè¿”å› 1 ï¼Œå› ä¸ºé”®ä¸å­˜åœ¨è€Œå¯¼è‡´åˆ é™¤å¤±è´¥æ—¶ï¼Œè¿”å› 0 ã€‚
+ * É¾³ı³É¹¦·µ»Ø 1 £¬ÒòÎª¼ü²»´æÔÚ¶øµ¼ÖÂÉ¾³ıÊ§°ÜÊ±£¬·µ»Ø 0 ¡£
  */
 int dbDelete(redisDb *db, robj *key) {
 
     /* Deleting an entry from the expires dict will not free the sds of
      * the key, because it is shared with the main dictionary. */
-    // åˆ é™¤é”®çš„è¿‡æœŸæ—¶é—´
+    // É¾³ı¼üµÄ¹ıÆÚÊ±¼ä
     if (dictSize(db->expires) > 0) dictDelete(db->expires,key->ptr);
 
-    // åˆ é™¤é”®å€¼å¯¹
+    // É¾³ı¼üÖµ¶Ô
     if (dictDelete(db->dict,key->ptr) == DICT_OK) {
-        // å¦‚æœå¼€å¯äº†é›†ç¾¤æ¨¡å¼ï¼Œé‚£ä¹ˆä»æ§½ä¸­åˆ é™¤ç»™å®šçš„é”®
+        // Èç¹û¿ªÆôÁË¼¯ÈºÄ£Ê½£¬ÄÇÃ´´Ó²ÛÖĞÉ¾³ı¸ø¶¨µÄ¼ü
         if (server.cluster_enabled) slotToKeyDel(key);
         return 1;
     } else {
-        // é”®ä¸å­˜åœ¨
+        // ¼ü²»´æÔÚ
         return 0;
     }
 }
@@ -349,41 +349,41 @@ robj *dbUnshareStringValue(redisDb *db, robj *key, robj *o) {
 }
 
 /*
- * æ¸…ç©ºæœåŠ¡å™¨çš„æ‰€æœ‰æ•°æ®ã€‚
+ * Çå¿Õ·şÎñÆ÷µÄËùÓĞÊı¾İ¡£
  */
 long long emptyDb(void(callback)(void*)) {
     int j;
     long long removed = 0;
 
-    // æ¸…ç©ºæ‰€æœ‰æ•°æ®åº“
+    // Çå¿ÕËùÓĞÊı¾İ¿â
     for (j = 0; j < server.dbnum; j++) {
 
-        // è®°å½•è¢«åˆ é™¤é”®çš„æ•°é‡
+        // ¼ÇÂ¼±»É¾³ı¼üµÄÊıÁ¿
         removed += dictSize(server.db[j].dict);
 
-        // åˆ é™¤æ‰€æœ‰é”®å€¼å¯¹
+        // É¾³ıËùÓĞ¼üÖµ¶Ô
         dictEmpty(server.db[j].dict,callback);
-        // åˆ é™¤æ‰€æœ‰é”®çš„è¿‡æœŸæ—¶é—´
+        // É¾³ıËùÓĞ¼üµÄ¹ıÆÚÊ±¼ä
         dictEmpty(server.db[j].expires,callback);
     }
 
-    // å¦‚æœå¼€å¯äº†é›†ç¾¤æ¨¡å¼ï¼Œé‚£ä¹ˆè¿˜è¦ç§»é™¤æ§½è®°å½•
+    // Èç¹û¿ªÆôÁË¼¯ÈºÄ£Ê½£¬ÄÇÃ´»¹ÒªÒÆ³ı²Û¼ÇÂ¼
     if (server.cluster_enabled) slotToKeyFlush();
 
-    // è¿”å›é”®çš„æ•°é‡
+    // ·µ»Ø¼üµÄÊıÁ¿
     return removed;
 }
 
 /*
- * å°†å®¢æˆ·ç«¯çš„ç›®æ ‡æ•°æ®åº“åˆ‡æ¢ä¸º id æ‰€æŒ‡å®šçš„æ•°æ®åº“
+ * ½«¿Í»§¶ËµÄÄ¿±êÊı¾İ¿âÇĞ»»Îª id ËùÖ¸¶¨µÄÊı¾İ¿â
  */
 int selectDb(redisClient *c, int id) {
 
-    // ç¡®ä¿ id åœ¨æ­£ç¡®èŒƒå›´å†…
+    // È·±£ id ÔÚÕıÈ··¶Î§ÄÚ
     if (id < 0 || id >= server.dbnum)
         return REDIS_ERR;
 
-    // åˆ‡æ¢æ•°æ®åº“ï¼ˆæ›´æ–°æŒ‡é’ˆï¼‰
+    // ÇĞ»»Êı¾İ¿â£¨¸üĞÂÖ¸Õë£©
     c->db = &server.db[id];
 
     return REDIS_OK;
@@ -392,16 +392,16 @@ int selectDb(redisClient *c, int id) {
 /*-----------------------------------------------------------------------------
  * Hooks for key space changes.
  *
- * é”®ç©ºé—´æ”¹åŠ¨çš„é’©å­ã€‚
+ * ¼ü¿Õ¼ä¸Ä¶¯µÄ¹³×Ó¡£
  *
  * Every time a key in the database is modified the function
  * signalModifiedKey() is called.
  *
- * æ¯å½“æ•°æ®åº“ä¸­çš„é”®è¢«æ”¹åŠ¨æ—¶ï¼Œ signalModifiedKey() å‡½æ•°éƒ½ä¼šè¢«è°ƒç”¨ã€‚
+ * Ã¿µ±Êı¾İ¿âÖĞµÄ¼ü±»¸Ä¶¯Ê±£¬ signalModifiedKey() º¯Êı¶¼»á±»µ÷ÓÃ¡£
  *
  * Every time a DB is flushed the function signalFlushDb() is called.
  *
- * æ¯å½“ä¸€ä¸ªæ•°æ®åº“è¢«æ¸…ç©ºæ—¶ï¼Œ signalFlushDb() éƒ½ä¼šè¢«è°ƒç”¨ã€‚
+ * Ã¿µ±Ò»¸öÊı¾İ¿â±»Çå¿ÕÊ±£¬ signalFlushDb() ¶¼»á±»µ÷ÓÃ¡£
  *----------------------------------------------------------------------------*/
 
 void signalModifiedKey(redisDb *db, robj *key) {
@@ -415,54 +415,54 @@ void signalFlushedDb(int dbid) {
 /*-----------------------------------------------------------------------------
  * Type agnostic commands operating on the key space
  *
- * ä¸ç±»å‹æ— å…³çš„æ•°æ®åº“æ“ä½œã€‚
+ * ÓëÀàĞÍÎŞ¹ØµÄÊı¾İ¿â²Ù×÷¡£
  *----------------------------------------------------------------------------*/
 
 /*
- * æ¸…ç©ºå®¢æˆ·ç«¯æŒ‡å®šçš„æ•°æ®åº“
+ * Çå¿Õ¿Í»§¶ËÖ¸¶¨µÄÊı¾İ¿â
  */
 void flushdbCommand(redisClient *c) {
 
     server.dirty += dictSize(c->db->dict);
 
-    // å‘é€é€šçŸ¥
+    // ·¢ËÍÍ¨Öª
     signalFlushedDb(c->db->id);
 
-    // æ¸…ç©ºæŒ‡å®šæ•°æ®åº“ä¸­çš„ dict å’Œ expires å­—å…¸
+    // Çå¿ÕÖ¸¶¨Êı¾İ¿âÖĞµÄ dict ºÍ expires ×Öµä
     dictEmpty(c->db->dict,NULL);
     dictEmpty(c->db->expires,NULL);
 
-    // å¦‚æœå¼€å¯äº†é›†ç¾¤æ¨¡å¼ï¼Œé‚£ä¹ˆè¿˜è¦ç§»é™¤æ§½è®°å½•
+    // Èç¹û¿ªÆôÁË¼¯ÈºÄ£Ê½£¬ÄÇÃ´»¹ÒªÒÆ³ı²Û¼ÇÂ¼
     if (server.cluster_enabled) slotToKeyFlush();
 
     addReply(c,shared.ok);
 }
 
 /*
- * æ¸…ç©ºæœåŠ¡å™¨ä¸­çš„æ‰€æœ‰æ•°æ®åº“
+ * Çå¿Õ·şÎñÆ÷ÖĞµÄËùÓĞÊı¾İ¿â
  */
 void flushallCommand(redisClient *c) {
 
-    // å‘é€é€šçŸ¥
+    // ·¢ËÍÍ¨Öª
     signalFlushedDb(-1);
 
-    // æ¸…ç©ºæ‰€æœ‰æ•°æ®åº“
+    // Çå¿ÕËùÓĞÊı¾İ¿â
     server.dirty += emptyDb(NULL);
     addReply(c,shared.ok);
 
-    // å¦‚æœæ­£åœ¨ä¿å­˜æ–°çš„ RDB ï¼Œé‚£ä¹ˆå–æ¶ˆä¿å­˜æ“ä½œ
+    // Èç¹ûÕıÔÚ±£´æĞÂµÄ RDB £¬ÄÇÃ´È¡Ïû±£´æ²Ù×÷
     if (server.rdb_child_pid != -1) {
         kill(server.rdb_child_pid,SIGUSR1);
         rdbRemoveTempFile(server.rdb_child_pid);
     }
 
-    // æ›´æ–° RDB æ–‡ä»¶
+    // ¸üĞÂ RDB ÎÄ¼ş
     if (server.saveparamslen > 0) {
         /* Normally rdbSave() will reset dirty, but we don't want this here
          * as otherwise FLUSHALL will not be replicated nor put into the AOF. */
-        // rdbSave() ä¼šæ¸…ç©ºæœåŠ¡å™¨çš„ dirty å±æ€§
-        // ä½†ä¸ºäº†ç¡®ä¿ FLUSHALL å‘½ä»¤ä¼šè¢«æ­£å¸¸ä¼ æ’­ï¼Œ
-        // ç¨‹åºéœ€è¦ä¿å­˜å¹¶åœ¨ rdbSave() è°ƒç”¨ä¹‹åè¿˜åŸæœåŠ¡å™¨çš„ dirty å±æ€§
+        // rdbSave() »áÇå¿Õ·şÎñÆ÷µÄ dirty ÊôĞÔ
+        // µ«ÎªÁËÈ·±£ FLUSHALL ÃüÁî»á±»Õı³£´«²¥£¬
+        // ³ÌĞòĞèÒª±£´æ²¢ÔÚ rdbSave() µ÷ÓÃÖ®ºó»¹Ô­·şÎñÆ÷µÄ dirty ÊôĞÔ
         int saved_dirty = server.dirty;
 
         rdbSave(server.rdb_filename);
@@ -476,16 +476,16 @@ void flushallCommand(redisClient *c) {
 void delCommand(redisClient *c) {
     int deleted = 0, j;
 
-    // éå†æ‰€æœ‰è¾“å…¥é”®
+    // ±éÀúËùÓĞÊäÈë¼ü
     for (j = 1; j < c->argc; j++) {
 
-        // å…ˆåˆ é™¤è¿‡æœŸçš„é”®
+        // ÏÈÉ¾³ı¹ıÆÚµÄ¼ü
         expireIfNeeded(c->db,c->argv[j]);
 
-        // å°è¯•åˆ é™¤é”®
+        // ³¢ÊÔÉ¾³ı¼ü
         if (dbDelete(c->db,c->argv[j])) {
 
-            // åˆ é™¤é”®æˆåŠŸï¼Œå‘é€é€šçŸ¥
+            // É¾³ı¼ü³É¹¦£¬·¢ËÍÍ¨Öª
 
             signalModifiedKey(c->db,c->argv[j]);
             notifyKeyspaceEvent(REDIS_NOTIFY_GENERIC,
@@ -493,22 +493,22 @@ void delCommand(redisClient *c) {
 
             server.dirty++;
 
-            // æˆåŠŸåˆ é™¤æ‰å¢åŠ  deleted è®¡æ•°å™¨çš„å€¼
+            // ³É¹¦É¾³ı²ÅÔö¼Ó deleted ¼ÆÊıÆ÷µÄÖµ
             deleted++;
         }
     }
 
-    // è¿”å›è¢«åˆ é™¤é”®çš„æ•°é‡
+    // ·µ»Ø±»É¾³ı¼üµÄÊıÁ¿
     addReplyLongLong(c,deleted);
 }
 
 void existsCommand(redisClient *c) {
 
-    // æ£€æŸ¥é”®æ˜¯å¦å·²ç»è¿‡æœŸï¼Œå¦‚æœå·²è¿‡æœŸçš„è¯ï¼Œé‚£ä¹ˆå°†å®ƒåˆ é™¤
-    // è¿™å¯ä»¥é¿å…å·²è¿‡æœŸçš„é”®è¢«è¯¯è®¤ä¸ºå­˜åœ¨
+    // ¼ì²é¼üÊÇ·ñÒÑ¾­¹ıÆÚ£¬Èç¹ûÒÑ¹ıÆÚµÄ»°£¬ÄÇÃ´½«ËüÉ¾³ı
+    // Õâ¿ÉÒÔ±ÜÃâÒÑ¹ıÆÚµÄ¼ü±»ÎóÈÏÎª´æÔÚ
     expireIfNeeded(c->db,c->argv[1]);
 
-    // åœ¨æ•°æ®åº“ä¸­æŸ¥æ‰¾
+    // ÔÚÊı¾İ¿âÖĞ²éÕÒ
     if (dbExists(c->db,c->argv[1])) {
         addReply(c, shared.cone);
     } else {
@@ -519,7 +519,7 @@ void existsCommand(redisClient *c) {
 void selectCommand(redisClient *c) {
     long id;
 
-    // ä¸åˆæ³•çš„æ•°æ®åº“å·ç 
+    // ²»ºÏ·¨µÄÊı¾İ¿âºÅÂë
     if (getLongFromObjectOrReply(c, c->argv[1], &id,
         "invalid DB index") != REDIS_OK)
         return;
@@ -529,7 +529,7 @@ void selectCommand(redisClient *c) {
         return;
     }
 
-    // åˆ‡æ¢æ•°æ®åº“
+    // ÇĞ»»Êı¾İ¿â
     if (selectDb(c,id) == REDIS_ERR) {
         addReplyError(c,"invalid DB index");
     } else {
@@ -540,7 +540,7 @@ void selectCommand(redisClient *c) {
 void randomkeyCommand(redisClient *c) {
     robj *key;
 
-    // éšæœºè¿”å›é”®
+    // Ëæ»ú·µ»Ø¼ü
     if ((key = dbRandomKey(c->db)) == NULL) {
         addReply(c,shared.nullbulk);
         return;
@@ -554,27 +554,27 @@ void keysCommand(redisClient *c) {
     dictIterator *di;
     dictEntry *de;
 
-    // æ¨¡å¼
+    // Ä£Ê½
     sds pattern = c->argv[1]->ptr;
 
     int plen = sdslen(pattern), allkeys;
     unsigned long numkeys = 0;
     void *replylen = addDeferredMultiBulkLength(c);
 
-    // éå†æ•´ä¸ªæ•°æ®åº“ï¼Œè¿”å›ï¼ˆåå­—ï¼‰å’Œæ¨¡å¼åŒ¹é…çš„é”®
+    // ±éÀúÕû¸öÊı¾İ¿â£¬·µ»Ø£¨Ãû×Ö£©ºÍÄ£Ê½Æ¥ÅäµÄ¼ü
     di = dictGetSafeIterator(c->db->dict);
     allkeys = (pattern[0] == '*' && pattern[1] == '\0');
     while((de = dictNext(di)) != NULL) {
         sds key = dictGetKey(de);
         robj *keyobj;
 
-        // å°†é”®åå’Œæ¨¡å¼è¿›è¡Œæ¯”å¯¹
+        // ½«¼üÃûºÍÄ£Ê½½øĞĞ±È¶Ô
         if (allkeys || stringmatchlen(pattern,plen,key,sdslen(key),0)) {
 
-            // åˆ›å»ºä¸€ä¸ªä¿å­˜é”®åå­—çš„å­—ç¬¦ä¸²å¯¹è±¡
+            // ´´½¨Ò»¸ö±£´æ¼üÃû×ÖµÄ×Ö·û´®¶ÔÏó
             keyobj = createStringObject(key,sdslen(key));
 
-            // åˆ é™¤å·²è¿‡æœŸé”®
+            // É¾³ıÒÑ¹ıÆÚ¼ü
             if (expireIfNeeded(c->db,keyobj) == 0) {
                 addReplyBulk(c,keyobj);
                 numkeys++;
@@ -640,26 +640,26 @@ int parseScanCursorOrReply(redisClient *c, robj *o, unsigned long *cursor) {
 
 /* This command implements SCAN, HSCAN and SSCAN commands.
  *
- * è¿™æ˜¯ SCAN ã€ HSCAN ã€ SSCAN å‘½ä»¤çš„å®ç°å‡½æ•°ã€‚
+ * ÕâÊÇ SCAN ¡¢ HSCAN ¡¢ SSCAN ÃüÁîµÄÊµÏÖº¯Êı¡£
  *
  * If object 'o' is passed, then it must be a Hash or Set object, otherwise
  * if 'o' is NULL the command will operate on the dictionary associated with
  * the current database.
  *
- * å¦‚æœç»™å®šäº†å¯¹è±¡ o ï¼Œé‚£ä¹ˆå®ƒå¿…é¡»æ˜¯ä¸€ä¸ªå“ˆå¸Œå¯¹è±¡æˆ–è€…é›†åˆå¯¹è±¡ï¼Œ
- * å¦‚æœ o ä¸º NULL çš„è¯ï¼Œå‡½æ•°å°†ä½¿ç”¨å½“å‰æ•°æ®åº“ä½œä¸ºè¿­ä»£å¯¹è±¡ã€‚
+ * Èç¹û¸ø¶¨ÁË¶ÔÏó o £¬ÄÇÃ´Ëü±ØĞëÊÇÒ»¸ö¹şÏ£¶ÔÏó»òÕß¼¯ºÏ¶ÔÏó£¬
+ * Èç¹û o Îª NULL µÄ»°£¬º¯Êı½«Ê¹ÓÃµ±Ç°Êı¾İ¿â×÷Îªµü´ú¶ÔÏó¡£
  *
  * When 'o' is not NULL the function assumes that the first argument in
  * the client arguments vector is a key so it skips it before iterating
  * in order to parse options.
  *
- * å¦‚æœå‚æ•° o ä¸ä¸º NULL ï¼Œé‚£ä¹ˆè¯´æ˜å®ƒæ˜¯ä¸€ä¸ªé”®å¯¹è±¡ï¼Œå‡½æ•°å°†è·³è¿‡è¿™äº›é”®å¯¹è±¡ï¼Œ
- * å¯¹ç»™å®šçš„å‘½ä»¤é€‰é¡¹è¿›è¡Œåˆ†æï¼ˆparseï¼‰ã€‚
+ * Èç¹û²ÎÊı o ²»Îª NULL £¬ÄÇÃ´ËµÃ÷ËüÊÇÒ»¸ö¼ü¶ÔÏó£¬º¯Êı½«Ìø¹ıÕâĞ©¼ü¶ÔÏó£¬
+ * ¶Ô¸ø¶¨µÄÃüÁîÑ¡Ïî½øĞĞ·ÖÎö£¨parse£©¡£
  *
  * In the case of a Hash object the function returns both the field and value
  * of every element on the Hash. 
  *
- * å¦‚æœè¢«è¿­ä»£çš„æ˜¯å“ˆå¸Œå¯¹è±¡ï¼Œé‚£ä¹ˆå‡½æ•°è¿”å›çš„æ˜¯é”®å€¼å¯¹ã€‚
+ * Èç¹û±»µü´úµÄÊÇ¹şÏ£¶ÔÏó£¬ÄÇÃ´º¯Êı·µ»ØµÄÊÇ¼üÖµ¶Ô¡£
  */
 void scanGenericCommand(redisClient *c, robj *o, unsigned long cursor) {
     int rv;
@@ -674,19 +674,19 @@ void scanGenericCommand(redisClient *c, robj *o, unsigned long cursor) {
 
     /* Object must be NULL (to iterate keys names), or the type of the object
      * must be Set, Sorted Set, or Hash. */
-    // è¾“å…¥ç±»å‹æ£€æŸ¥
+    // ÊäÈëÀàĞÍ¼ì²é
     redisAssert(o == NULL || o->type == REDIS_SET || o->type == REDIS_HASH ||
                 o->type == REDIS_ZSET);
 
     /* Set i to the first option argument. The previous one is the cursor. */
-    // è®¾ç½®ç¬¬ä¸€ä¸ªé€‰é¡¹å‚æ•°çš„ç´¢å¼•ä½ç½®
+    // ÉèÖÃµÚÒ»¸öÑ¡Ïî²ÎÊıµÄË÷ÒıÎ»ÖÃ
     // 0    1      2      3  
-    // SCAN OPTION <op_arg>         SCAN å‘½ä»¤çš„é€‰é¡¹å€¼ä»ç´¢å¼• 2 å¼€å§‹
-    // HSCAN <key> OPTION <op_arg>  è€Œå…¶ä»– *SCAN å‘½ä»¤çš„é€‰é¡¹å€¼ä»ç´¢å¼• 3 å¼€å§‹
+    // SCAN OPTION <op_arg>         SCAN ÃüÁîµÄÑ¡ÏîÖµ´ÓË÷Òı 2 ¿ªÊ¼
+    // HSCAN <key> OPTION <op_arg>  ¶øÆäËû *SCAN ÃüÁîµÄÑ¡ÏîÖµ´ÓË÷Òı 3 ¿ªÊ¼
     i = (o == NULL) ? 2 : 3; /* Skip the key argument if needed. */
 
     /* Step 1: Parse options. */
-    // åˆ†æé€‰é¡¹å‚æ•°
+    // ·ÖÎöÑ¡Ïî²ÎÊı
     while (i < c->argc) {
         j = c->argc - i;
 
@@ -730,26 +730,26 @@ void scanGenericCommand(redisClient *c, robj *o, unsigned long cursor) {
      * composed of a small number of elements. So to avoid taking state we
      * just return everything inside the object in a single call, setting the
      * cursor to zero to signal the end of the iteration. */
-     // å¦‚æœå¯¹è±¡çš„åº•å±‚å®ç°ä¸º ziplist ã€intset è€Œä¸æ˜¯å“ˆå¸Œè¡¨ï¼Œ
-     // é‚£ä¹ˆè¿™äº›å¯¹è±¡åº”è¯¥åªåŒ…å«äº†å°‘é‡å…ƒç´ ï¼Œ
-     // ä¸ºäº†ä¿æŒä¸è®©æœåŠ¡å™¨è®°å½•è¿­ä»£çŠ¶æ€çš„è®¾è®¡
-     // æˆ‘ä»¬å°† ziplist æˆ–è€… intset é‡Œé¢çš„æ‰€æœ‰å…ƒç´ éƒ½ä¸€æ¬¡è¿”å›ç»™è°ƒç”¨è€…
-     // å¹¶å‘è°ƒç”¨è€…è¿”å›æ¸¸æ ‡ï¼ˆcursorï¼‰ 0
+     // Èç¹û¶ÔÏóµÄµ×²ãÊµÏÖÎª ziplist ¡¢intset ¶ø²»ÊÇ¹şÏ£±í£¬
+     // ÄÇÃ´ÕâĞ©¶ÔÏóÓ¦¸ÃÖ»°üº¬ÁËÉÙÁ¿ÔªËØ£¬
+     // ÎªÁË±£³Ö²»ÈÃ·şÎñÆ÷¼ÇÂ¼µü´ú×´Ì¬µÄÉè¼Æ
+     // ÎÒÃÇ½« ziplist »òÕß intset ÀïÃæµÄËùÓĞÔªËØ¶¼Ò»´Î·µ»Ø¸øµ÷ÓÃÕß
+     // ²¢Ïòµ÷ÓÃÕß·µ»ØÓÎ±ê£¨cursor£© 0
 
     /* Handle the case of a hash table. */
     ht = NULL;
     if (o == NULL) {
-        // è¿­ä»£ç›®æ ‡ä¸ºæ•°æ®åº“
+        // µü´úÄ¿±êÎªÊı¾İ¿â
         ht = c->db->dict;
     } else if (o->type == REDIS_SET && o->encoding == REDIS_ENCODING_HT) {
-        // è¿­ä»£ç›®æ ‡ä¸º HT ç¼–ç çš„é›†åˆ
+        // µü´úÄ¿±êÎª HT ±àÂëµÄ¼¯ºÏ
         ht = o->ptr;
     } else if (o->type == REDIS_HASH && o->encoding == REDIS_ENCODING_HT) {
-        // è¿­ä»£ç›®æ ‡ä¸º HT ç¼–ç çš„å“ˆå¸Œ
+        // µü´úÄ¿±êÎª HT ±àÂëµÄ¹şÏ£
         ht = o->ptr;
         count *= 2; /* We return key / value for this type. */
     } else if (o->type == REDIS_ZSET && o->encoding == REDIS_ENCODING_SKIPLIST) {
-        // è¿­ä»£ç›®æ ‡ä¸º HT ç¼–ç çš„è·³è·ƒè¡¨
+        // µü´úÄ¿±êÎª HT ±àÂëµÄÌøÔ¾±í
         zset *zs = o->ptr;
         ht = zs->dict;
         count *= 2; /* We return key / value for this type. */
@@ -761,10 +761,10 @@ void scanGenericCommand(redisClient *c, robj *o, unsigned long cursor) {
         /* We pass two pointers to the callback: the list to which it will
          * add new elements, and the object containing the dictionary so that
          * it is possible to fetch more data in a type-dependent way. */
-        // æˆ‘ä»¬å‘å›è°ƒå‡½æ•°ä¼ å…¥ä¸¤ä¸ªæŒ‡é’ˆï¼š
-        // ä¸€ä¸ªæ˜¯ç”¨äºè®°å½•è¢«è¿­ä»£å…ƒç´ çš„åˆ—è¡¨
-        // å¦ä¸€ä¸ªæ˜¯å­—å…¸å¯¹è±¡
-        // ä»è€Œå®ç°ç±»å‹æ— å…³çš„æ•°æ®æå–æ“ä½œ
+        // ÎÒÃÇÏò»Øµ÷º¯Êı´«ÈëÁ½¸öÖ¸Õë£º
+        // Ò»¸öÊÇÓÃÓÚ¼ÇÂ¼±»µü´úÔªËØµÄÁĞ±í
+        // ÁíÒ»¸öÊÇ×Öµä¶ÔÏó
+        // ´Ó¶øÊµÏÖÀàĞÍÎŞ¹ØµÄÊı¾İÌáÈ¡²Ù×÷
         privdata[0] = keys;
         privdata[1] = o;
         do {
@@ -905,11 +905,11 @@ void shutdownCommand(redisClient *c) {
         return;
     } else if (c->argc == 2) {
 
-        // åœæœºæ—¶ä¸è¿›è¡Œä¿å­˜
+        // Í£»úÊ±²»½øĞĞ±£´æ
         if (!strcasecmp(c->argv[1]->ptr,"nosave")) {
             flags |= REDIS_SHUTDOWN_NOSAVE;
 
-        // åœæœºæ—¶è¿›è¡Œä¿å­˜
+        // Í£»úÊ±½øĞĞ±£´æ
         } else if (!strcasecmp(c->argv[1]->ptr,"save")) {
             flags |= REDIS_SHUTDOWN_SAVE;
 
@@ -938,46 +938,46 @@ void renameGenericCommand(redisClient *c, int nx) {
     long long expire;
 
     /* To use the same key as src and dst is probably an error */
-    // æ¥æºé”®å’Œç›®æ ‡é”®ä¸èƒ½ç›¸åŒ
+    // À´Ô´¼üºÍÄ¿±ê¼ü²»ÄÜÏàÍ¬
     if (sdscmp(c->argv[1]->ptr,c->argv[2]->ptr) == 0) {
         addReply(c,shared.sameobjecterr);
         return;
     }
 
-    // å–å‡ºæ¥æºé”®
+    // È¡³öÀ´Ô´¼ü
     if ((o = lookupKeyWriteOrReply(c,c->argv[1],shared.nokeyerr)) == NULL)
         return;
 
-    // å¢åŠ å¼•ç”¨è®¡æ•°ï¼Œå› ä¸ºåé¢ç›®æ ‡é”®ä¹Ÿä¼šå¼•ç”¨è¿™ä¸ªå¯¹è±¡
-    // å¦‚æœä¸å¢åŠ çš„è¯ï¼Œå½“æ¥æºé”®è¢«åˆ é™¤æ—¶ï¼Œè¿™ä¸ªå€¼å¯¹è±¡ä¹Ÿä¼šè¢«åˆ é™¤
+    // Ôö¼ÓÒıÓÃ¼ÆÊı£¬ÒòÎªºóÃæÄ¿±ê¼üÒ²»áÒıÓÃÕâ¸ö¶ÔÏó
+    // Èç¹û²»Ôö¼ÓµÄ»°£¬µ±À´Ô´¼ü±»É¾³ıÊ±£¬Õâ¸öÖµ¶ÔÏóÒ²»á±»É¾³ı
     incrRefCount(o);
 
-    // å–å‡ºæ¥æºé”®çš„è¿‡æœŸæ—¶é—´
+    // È¡³öÀ´Ô´¼üµÄ¹ıÆÚÊ±¼ä
     expire = getExpire(c->db,c->argv[1]);
 
-    // æ£€æŸ¥ç›®æ ‡é”®æ˜¯å¦å­˜åœ¨
+    // ¼ì²éÄ¿±ê¼üÊÇ·ñ´æÔÚ
     if (lookupKeyWrite(c->db,c->argv[2]) != NULL) {
 
-        // å¦‚æœç›®æ ‡é”®å­˜åœ¨ï¼Œå¹¶ä¸”æ‰§è¡Œçš„æ˜¯ RENAMENX ï¼Œé‚£ä¹ˆç›´æ¥è¿”å›
+        // Èç¹ûÄ¿±ê¼ü´æÔÚ£¬²¢ÇÒÖ´ĞĞµÄÊÇ RENAMENX £¬ÄÇÃ´Ö±½Ó·µ»Ø
         if (nx) {
             decrRefCount(o);
             addReply(c,shared.czero);
             return;
         }
 
-        // å¦‚æœæ‰§è¡Œçš„æ˜¯ RENAME ï¼Œé‚£ä¹ˆåˆ é™¤å·²æœ‰çš„ç›®æ ‡é”®
+        // Èç¹ûÖ´ĞĞµÄÊÇ RENAME £¬ÄÇÃ´É¾³ıÒÑÓĞµÄÄ¿±ê¼ü
         /* Overwrite: delete the old key before creating the new one
          * with the same name. */
         dbDelete(c->db,c->argv[2]);
     }
 
-    // å°†æ¥æºé”®çš„å€¼å¯¹è±¡å’Œç›®æ ‡é”®è¿›è¡Œå…³è”
+    // ½«À´Ô´¼üµÄÖµ¶ÔÏóºÍÄ¿±ê¼ü½øĞĞ¹ØÁª
     dbAdd(c->db,c->argv[2],o);
 
-    // å¦‚æœæœ‰è¿‡æœŸæ—¶é—´ï¼Œé‚£ä¹ˆä¸ºç›®æ ‡é”®è®¾ç½®è¿‡æœŸæ—¶é—´
+    // Èç¹ûÓĞ¹ıÆÚÊ±¼ä£¬ÄÇÃ´ÎªÄ¿±ê¼üÉèÖÃ¹ıÆÚÊ±¼ä
     if (expire != -1) setExpire(c->db,c->argv[2],expire);
 
-    // åˆ é™¤æ¥æºé”®
+    // É¾³ıÀ´Ô´¼ü
     dbDelete(c->db,c->argv[1]);
 
     signalModifiedKey(c->db,c->argv[1]);
@@ -1012,33 +1012,33 @@ void moveCommand(redisClient *c) {
     }
 
     /* Obtain source and target DB pointers */
-    // æºæ•°æ®åº“
+    // Ô´Êı¾İ¿â
     src = c->db;
-    // æºæ•°æ®åº“çš„ id
+    // Ô´Êı¾İ¿âµÄ id
     srcid = c->db->id;
 
-    // åˆ‡æ¢åˆ°ç›®æ ‡æ•°æ®åº“
+    // ÇĞ»»µ½Ä¿±êÊı¾İ¿â
     if (selectDb(c,atoi(c->argv[2]->ptr)) == REDIS_ERR) {
         addReply(c,shared.outofrangeerr);
         return;
     }
 
-    // ç›®æ ‡æ•°æ®åº“
+    // Ä¿±êÊı¾İ¿â
     dst = c->db;
 
-    // åˆ‡æ¢å›æºæ•°æ®åº“
+    // ÇĞ»»»ØÔ´Êı¾İ¿â
     selectDb(c,srcid); /* Back to the source DB */
 
     /* If the user is moving using as target the same
      * DB as the source DB it is probably an error. */
-    // å¦‚æœæºæ•°æ®åº“å’Œç›®æ ‡æ•°æ®åº“ç›¸ç­‰ï¼Œé‚£ä¹ˆè¿”å›é”™è¯¯
+    // Èç¹ûÔ´Êı¾İ¿âºÍÄ¿±êÊı¾İ¿âÏàµÈ£¬ÄÇÃ´·µ»Ø´íÎó
     if (src == dst) {
         addReply(c,shared.sameobjecterr);
         return;
     }
 
     /* Check if the element exists and get a reference */
-    // å–å‡ºè¦ç§»åŠ¨çš„å¯¹è±¡
+    // È¡³öÒªÒÆ¶¯µÄ¶ÔÏó
     o = lookupKeyWrite(c->db,c->argv[1]);
     if (!o) {
         addReply(c,shared.czero);
@@ -1046,19 +1046,19 @@ void moveCommand(redisClient *c) {
     }
 
     /* Return zero if the key already exists in the target DB */
-    // å¦‚æœé”®å·²ç»å­˜åœ¨äºç›®æ ‡æ•°æ®åº“ï¼Œé‚£ä¹ˆè¿”å›
+    // Èç¹û¼üÒÑ¾­´æÔÚÓÚÄ¿±êÊı¾İ¿â£¬ÄÇÃ´·µ»Ø
     if (lookupKeyWrite(dst,c->argv[1]) != NULL) {
         addReply(c,shared.czero);
         return;
     }
 
-    // å°†é”®æ·»åŠ åˆ°ç›®æ ‡æ•°æ®åº“ä¸­
+    // ½«¼üÌí¼Óµ½Ä¿±êÊı¾İ¿âÖĞ
     dbAdd(dst,c->argv[1],o);
-    // å¢åŠ å¯¹å¯¹è±¡çš„å¼•ç”¨è®¡æ•°ï¼Œé¿å…æ¥ä¸‹æ¥åœ¨æºæ•°æ®åº“ä¸­åˆ é™¤æ—¶ o è¢«æ¸…ç†
+    // Ôö¼Ó¶Ô¶ÔÏóµÄÒıÓÃ¼ÆÊı£¬±ÜÃâ½ÓÏÂÀ´ÔÚÔ´Êı¾İ¿âÖĞÉ¾³ıÊ± o ±»ÇåÀí
     incrRefCount(o);
 
     /* OK! key moved, free the entry in the source DB */
-    // å°†é”®ä»æºæ•°æ®åº“ä¸­è¿”å›
+    // ½«¼ü´ÓÔ´Êı¾İ¿âÖĞ·µ»Ø
     dbDelete(src,c->argv[1]);
 
     server.dirty++;
@@ -1071,52 +1071,52 @@ void moveCommand(redisClient *c) {
  *----------------------------------------------------------------------------*/
 
 /*
- * ç§»é™¤é”® key çš„è¿‡æœŸæ—¶é—´
+ * ÒÆ³ı¼ü key µÄ¹ıÆÚÊ±¼ä
  */
 int removeExpire(redisDb *db, robj *key) {
     /* An expire may only be removed if there is a corresponding entry in the
      * main dict. Otherwise, the key will never be freed. */
-    // ç¡®ä¿é”®å¸¦æœ‰è¿‡æœŸæ—¶é—´
+    // È·±£¼ü´øÓĞ¹ıÆÚÊ±¼ä
     redisAssertWithInfo(NULL,key,dictFind(db->dict,key->ptr) != NULL);
 
-    // åˆ é™¤è¿‡æœŸæ—¶é—´
+    // É¾³ı¹ıÆÚÊ±¼ä
     return dictDelete(db->expires,key->ptr) == DICT_OK;
 }
 
 /*
- * å°†é”® key çš„è¿‡æœŸæ—¶é—´è®¾ä¸º when
+ * ½«¼ü key µÄ¹ıÆÚÊ±¼äÉèÎª when
  */
 void setExpire(redisDb *db, robj *key, long long when) {
 
     dictEntry *kde, *de;
 
     /* Reuse the sds from the main dict in the expire dict */
-    // å–å‡ºé”®
+    // È¡³ö¼ü
     kde = dictFind(db->dict,key->ptr);
 
     redisAssertWithInfo(NULL,key,kde != NULL);
 
-    // æ ¹æ®é”®å–å‡ºé”®çš„è¿‡æœŸæ—¶é—´
+    // ¸ù¾İ¼üÈ¡³ö¼üµÄ¹ıÆÚÊ±¼ä
     de = dictReplaceRaw(db->expires,dictGetKey(kde));
 
-    // è®¾ç½®é”®çš„è¿‡æœŸæ—¶é—´
-    // è¿™é‡Œæ˜¯ç›´æ¥ä½¿ç”¨æ•´æ•°å€¼æ¥ä¿å­˜è¿‡æœŸæ—¶é—´ï¼Œä¸æ˜¯ç”¨ INT ç¼–ç çš„ String å¯¹è±¡
+    // ÉèÖÃ¼üµÄ¹ıÆÚÊ±¼ä
+    // ÕâÀïÊÇÖ±½ÓÊ¹ÓÃÕûÊıÖµÀ´±£´æ¹ıÆÚÊ±¼ä£¬²»ÊÇÓÃ INT ±àÂëµÄ String ¶ÔÏó
     dictSetSignedIntegerVal(de,when);
 }
 
 /* Return the expire time of the specified key, or -1 if no expire
  * is associated with this key (i.e. the key is non volatile) 
  *
- * è¿”å›ç»™å®š key çš„è¿‡æœŸæ—¶é—´ã€‚
+ * ·µ»Ø¸ø¶¨ key µÄ¹ıÆÚÊ±¼ä¡£
  *
- * å¦‚æœé”®æ²¡æœ‰è®¾ç½®è¿‡æœŸæ—¶é—´ï¼Œé‚£ä¹ˆè¿”å› -1 ã€‚
+ * Èç¹û¼üÃ»ÓĞÉèÖÃ¹ıÆÚÊ±¼ä£¬ÄÇÃ´·µ»Ø -1 ¡£
  */
 long long getExpire(redisDb *db, robj *key) {
     dictEntry *de;
 
     /* No expire? return ASAP */
-    // è·å–é”®çš„è¿‡æœŸæ—¶é—´
-    // å¦‚æœè¿‡æœŸæ—¶é—´ä¸å­˜åœ¨ï¼Œé‚£ä¹ˆç›´æ¥è¿”å›
+    // »ñÈ¡¼üµÄ¹ıÆÚÊ±¼ä
+    // Èç¹û¹ıÆÚÊ±¼ä²»´æÔÚ£¬ÄÇÃ´Ö±½Ó·µ»Ø
     if (dictSize(db->expires) == 0 ||
        (de = dictFind(db->expires,key->ptr)) == NULL) return -1;
 
@@ -1124,7 +1124,7 @@ long long getExpire(redisDb *db, robj *key) {
      * be present in the main dict (safety check). */
     redisAssertWithInfo(NULL,key,dictFind(db->dict,key->ptr) != NULL);
 
-    // è¿”å›è¿‡æœŸæ—¶é—´
+    // ·µ»Ø¹ıÆÚÊ±¼ä
     return dictGetSignedIntegerVal(de);
 }
 
@@ -1132,34 +1132,34 @@ long long getExpire(redisDb *db, robj *key) {
  * When a key expires in the master, a DEL operation for this key is sent
  * to all the slaves and the AOF file if enabled.
  *
- * å°†è¿‡æœŸæ—¶é—´ä¼ æ’­åˆ°é™„å±èŠ‚ç‚¹å’Œ AOF æ–‡ä»¶ã€‚
+ * ½«¹ıÆÚÊ±¼ä´«²¥µ½¸½Êô½ÚµãºÍ AOF ÎÄ¼ş¡£
  *
- * å½“ä¸€ä¸ªé”®åœ¨ä¸»èŠ‚ç‚¹ä¸­è¿‡æœŸæ—¶ï¼Œ
- * ä¸»èŠ‚ç‚¹ä¼šå‘æ‰€æœ‰é™„å±èŠ‚ç‚¹å’Œ AOF æ–‡ä»¶ä¼ æ’­ä¸€ä¸ªæ˜¾å¼çš„ DEL å‘½ä»¤ã€‚
+ * µ±Ò»¸ö¼üÔÚÖ÷½ÚµãÖĞ¹ıÆÚÊ±£¬
+ * Ö÷½Úµã»áÏòËùÓĞ¸½Êô½ÚµãºÍ AOF ÎÄ¼ş´«²¥Ò»¸öÏÔÊ½µÄ DEL ÃüÁî¡£
  *
  * This way the key expiry is centralized in one place, and since both
  * AOF and the master->slave link guarantee operation ordering, everything
  * will be consistent even if we allow write operations against expiring
  * keys. 
  *
- * è¿™ç§åšæ³•ä½¿å¾—å¯¹é”®çš„è¿‡æœŸå¯ä»¥é›†ä¸­åœ¨ä¸€å¤„å¤„ç†ï¼Œ
- * å› ä¸º AOF ä»¥åŠä¸»èŠ‚ç‚¹å’Œé™„å±èŠ‚ç‚¹ä¹‹é—´çš„é“¾æ¥ï¼Œéƒ½å¯ä»¥ä¿è¯æ“ä½œçš„æ‰§è¡Œé¡ºåºï¼Œ
- * æ‰€ä»¥å³ä½¿æœ‰å†™æ“ä½œå¯¹è¿‡æœŸé”®æ‰§è¡Œï¼Œæ‰€æœ‰æ•°æ®éƒ½è¿˜æ˜¯ consistent çš„ã€‚
+ * ÕâÖÖ×ö·¨Ê¹µÃ¶Ô¼üµÄ¹ıÆÚ¿ÉÒÔ¼¯ÖĞÔÚÒ»´¦´¦Àí£¬
+ * ÒòÎª AOF ÒÔ¼°Ö÷½ÚµãºÍ¸½Êô½ÚµãÖ®¼äµÄÁ´½Ó£¬¶¼¿ÉÒÔ±£Ö¤²Ù×÷µÄÖ´ĞĞË³Ğò£¬
+ * ËùÒÔ¼´Ê¹ÓĞĞ´²Ù×÷¶Ô¹ıÆÚ¼üÖ´ĞĞ£¬ËùÓĞÊı¾İ¶¼»¹ÊÇ consistent µÄ¡£
  */
 void propagateExpire(redisDb *db, robj *key) {
     robj *argv[2];
 
-    // æ„é€ ä¸€ä¸ª DEL key å‘½ä»¤
+    // ¹¹ÔìÒ»¸ö DEL key ÃüÁî
     argv[0] = shared.del;
     argv[1] = key;
     incrRefCount(argv[0]);
     incrRefCount(argv[1]);
 
-    // ä¼ æ’­åˆ° AOF 
+    // ´«²¥µ½ AOF 
     if (server.aof_state != REDIS_AOF_OFF)
         feedAppendOnlyFile(server.delCommand,db->id,argv,2);
 
-    // ä¼ æ’­åˆ°æ‰€æœ‰é™„å±èŠ‚ç‚¹
+    // ´«²¥µ½ËùÓĞ¸½Êô½Úµã
     replicationFeedSlaves(server.slaves,db->id,argv,2);
 
     decrRefCount(argv[0]);
@@ -1167,23 +1167,23 @@ void propagateExpire(redisDb *db, robj *key) {
 }
 
 /*
- * æ£€æŸ¥ key æ˜¯å¦å·²ç»è¿‡æœŸï¼Œå¦‚æœæ˜¯çš„è¯ï¼Œå°†å®ƒä»æ•°æ®åº“ä¸­åˆ é™¤ã€‚
+ * ¼ì²é key ÊÇ·ñÒÑ¾­¹ıÆÚ£¬Èç¹ûÊÇµÄ»°£¬½«Ëü´ÓÊı¾İ¿âÖĞÉ¾³ı¡£
  *
- * è¿”å› 0 è¡¨ç¤ºé”®æ²¡æœ‰è¿‡æœŸæ—¶é—´ï¼Œæˆ–è€…é”®æœªè¿‡æœŸã€‚
+ * ·µ»Ø 0 ±íÊ¾¼üÃ»ÓĞ¹ıÆÚÊ±¼ä£¬»òÕß¼üÎ´¹ıÆÚ¡£
  *
- * è¿”å› 1 è¡¨ç¤ºé”®å·²ç»å› ä¸ºè¿‡æœŸè€Œè¢«åˆ é™¤äº†ã€‚
+ * ·µ»Ø 1 ±íÊ¾¼üÒÑ¾­ÒòÎª¹ıÆÚ¶ø±»É¾³ıÁË¡£
  */
 int expireIfNeeded(redisDb *db, robj *key) {
 
-    // å–å‡ºé”®çš„è¿‡æœŸæ—¶é—´
+    // È¡³ö¼üµÄ¹ıÆÚÊ±¼ä
     mstime_t when = getExpire(db,key);
     mstime_t now;
 
-    // æ²¡æœ‰è¿‡æœŸæ—¶é—´
+    // Ã»ÓĞ¹ıÆÚÊ±¼ä
     if (when < 0) return 0; /* No expire for this key */
 
     /* Don't expire anything while loading. It will be done later. */
-    // å¦‚æœæœåŠ¡å™¨æ­£åœ¨è¿›è¡Œè½½å…¥ï¼Œé‚£ä¹ˆä¸è¿›è¡Œä»»ä½•è¿‡æœŸæ£€æŸ¥
+    // Èç¹û·şÎñÆ÷ÕıÔÚ½øĞĞÔØÈë£¬ÄÇÃ´²»½øĞĞÈÎºÎ¹ıÆÚ¼ì²é
     if (server.loading) return 0;
 
     /* If we are in the context of a Lua script, we claim that time is
@@ -1200,30 +1200,30 @@ int expireIfNeeded(redisDb *db, robj *key) {
      * Still we try to return the right information to the caller, 
      * that is, 0 if we think the key should be still valid, 1 if
      * we think the key is expired at this time. */
-    // å½“æœåŠ¡å™¨è¿è¡Œåœ¨ replication æ¨¡å¼æ—¶
-    // é™„å±èŠ‚ç‚¹å¹¶ä¸ä¸»åŠ¨åˆ é™¤ key
-    // å®ƒåªè¿”å›ä¸€ä¸ªé€»è¾‘ä¸Šæ­£ç¡®çš„è¿”å›å€¼
-    // çœŸæ­£çš„åˆ é™¤æ“ä½œè¦ç­‰å¾…ä¸»èŠ‚ç‚¹å‘æ¥åˆ é™¤å‘½ä»¤æ—¶æ‰æ‰§è¡Œ
-    // ä»è€Œä¿è¯æ•°æ®çš„åŒæ­¥
+    // µ±·şÎñÆ÷ÔËĞĞÔÚ replication Ä£Ê½Ê±
+    // ¸½Êô½Úµã²¢²»Ö÷¶¯É¾³ı key
+    // ËüÖ»·µ»ØÒ»¸öÂß¼­ÉÏÕıÈ·µÄ·µ»ØÖµ
+    // ÕæÕıµÄÉ¾³ı²Ù×÷ÒªµÈ´ıÖ÷½Úµã·¢À´É¾³ıÃüÁîÊ±²ÅÖ´ĞĞ
+    // ´Ó¶ø±£Ö¤Êı¾İµÄÍ¬²½
     if (server.masterhost != NULL) return now > when;
 
-    // è¿è¡Œåˆ°è¿™é‡Œï¼Œè¡¨ç¤ºé”®å¸¦æœ‰è¿‡æœŸæ—¶é—´ï¼Œå¹¶ä¸”æœåŠ¡å™¨ä¸ºä¸»èŠ‚ç‚¹
+    // ÔËĞĞµ½ÕâÀï£¬±íÊ¾¼ü´øÓĞ¹ıÆÚÊ±¼ä£¬²¢ÇÒ·şÎñÆ÷ÎªÖ÷½Úµã
 
     /* Return when this key has not expired */
-    // å¦‚æœæœªè¿‡æœŸï¼Œè¿”å› 0
+    // Èç¹ûÎ´¹ıÆÚ£¬·µ»Ø 0
     if (now <= when) return 0;
 
     /* Delete the key */
     server.stat_expiredkeys++;
 
-    // å‘ AOF æ–‡ä»¶å’Œé™„å±èŠ‚ç‚¹ä¼ æ’­è¿‡æœŸä¿¡æ¯
+    // Ïò AOF ÎÄ¼şºÍ¸½Êô½Úµã´«²¥¹ıÆÚĞÅÏ¢
     propagateExpire(db,key);
 
-    // å‘é€äº‹ä»¶é€šçŸ¥
+    // ·¢ËÍÊÂ¼şÍ¨Öª
     notifyKeyspaceEvent(REDIS_NOTIFY_EXPIRED,
         "expired",key,db->id);
 
-    // å°†è¿‡æœŸé”®ä»æ•°æ®åº“ä¸­åˆ é™¤
+    // ½«¹ıÆÚ¼ü´ÓÊı¾İ¿âÖĞÉ¾³ı
     return dbDelete(db,key);
 }
 
@@ -1236,32 +1236,32 @@ int expireIfNeeded(redisDb *db, robj *key) {
  * the "basetime" argument is used to signal what the base time is (either 0
  * for *AT variants of the command, or the current time for relative expires).
  *
- * è¿™ä¸ªå‡½æ•°æ˜¯ EXPIRE ã€ PEXPIRE ã€ EXPIREAT å’Œ PEXPIREAT å‘½ä»¤çš„åº•å±‚å®ç°å‡½æ•°ã€‚
+ * Õâ¸öº¯ÊıÊÇ EXPIRE ¡¢ PEXPIRE ¡¢ EXPIREAT ºÍ PEXPIREAT ÃüÁîµÄµ×²ãÊµÏÖº¯Êı¡£
  *
- * å‘½ä»¤çš„ç¬¬äºŒä¸ªå‚æ•°å¯èƒ½æ˜¯ç»å¯¹å€¼ï¼Œä¹Ÿå¯èƒ½æ˜¯ç›¸å¯¹å€¼ã€‚
- * å½“æ‰§è¡Œ *AT å‘½ä»¤æ—¶ï¼Œ basetime ä¸º 0 ï¼Œåœ¨å…¶ä»–æƒ…å†µä¸‹ï¼Œå®ƒä¿å­˜çš„å°±æ˜¯å½“å‰çš„ç»å¯¹æ—¶é—´ã€‚
+ * ÃüÁîµÄµÚ¶ş¸ö²ÎÊı¿ÉÄÜÊÇ¾ø¶ÔÖµ£¬Ò²¿ÉÄÜÊÇÏà¶ÔÖµ¡£
+ * µ±Ö´ĞĞ *AT ÃüÁîÊ±£¬ basetime Îª 0 £¬ÔÚÆäËûÇé¿öÏÂ£¬Ëü±£´æµÄ¾ÍÊÇµ±Ç°µÄ¾ø¶ÔÊ±¼ä¡£
  *
  * unit is either UNIT_SECONDS or UNIT_MILLISECONDS, and is only used for
  * the argv[2] parameter. The basetime is always specified in milliseconds. 
  *
- * unit ç”¨äºæŒ‡å®š argv[2] ï¼ˆä¼ å…¥è¿‡æœŸæ—¶é—´ï¼‰çš„æ ¼å¼ï¼Œ
- * å®ƒå¯ä»¥æ˜¯ UNIT_SECONDS æˆ– UNIT_MILLISECONDS ï¼Œ
- * basetime å‚æ•°åˆ™æ€»æ˜¯æ¯«ç§’æ ¼å¼çš„ã€‚
+ * unit ÓÃÓÚÖ¸¶¨ argv[2] £¨´«Èë¹ıÆÚÊ±¼ä£©µÄ¸ñÊ½£¬
+ * Ëü¿ÉÒÔÊÇ UNIT_SECONDS »ò UNIT_MILLISECONDS £¬
+ * basetime ²ÎÊıÔò×ÜÊÇºÁÃë¸ñÊ½µÄ¡£
  */
 void expireGenericCommand(redisClient *c, long long basetime, int unit) {
     robj *key = c->argv[1], *param = c->argv[2];
     long long when; /* unix time in milliseconds when the key will expire. */
 
-    // å–å‡º when å‚æ•°
+    // È¡³ö when ²ÎÊı
     if (getLongLongFromObjectOrReply(c, param, &when, NULL) != REDIS_OK)
         return;
 
-    // å¦‚æœä¼ å…¥çš„è¿‡æœŸæ—¶é—´æ˜¯ä»¥ç§’ä¸ºå•ä½çš„ï¼Œé‚£ä¹ˆå°†å®ƒè½¬æ¢ä¸ºæ¯«ç§’
+    // Èç¹û´«ÈëµÄ¹ıÆÚÊ±¼äÊÇÒÔÃëÎªµ¥Î»µÄ£¬ÄÇÃ´½«Ëü×ª»»ÎªºÁÃë
     if (unit == UNIT_SECONDS) when *= 1000;
     when += basetime;
 
     /* No key, return zero. */
-    // å–å‡ºé”®
+    // È¡³ö¼ü
     if (lookupKeyRead(c->db,key) == NULL) {
         addReply(c,shared.czero);
         return;
@@ -1271,19 +1271,19 @@ void expireGenericCommand(redisClient *c, long long basetime, int unit) {
      * should never be executed as a DEL when load the AOF or in the context
      * of a slave instance.
      *
-     * åœ¨è½½å…¥æ•°æ®æ—¶ï¼Œæˆ–è€…æœåŠ¡å™¨ä¸ºé™„å±èŠ‚ç‚¹æ—¶ï¼Œ
-     * å³ä½¿ EXPIRE çš„ TTL ä¸ºè´Ÿæ•°ï¼Œæˆ–è€… EXPIREAT æä¾›çš„æ—¶é—´æˆ³å·²ç»è¿‡æœŸï¼Œ
-     * æœåŠ¡å™¨ä¹Ÿä¸ä¼šä¸»åŠ¨åˆ é™¤è¿™ä¸ªé”®ï¼Œè€Œæ˜¯ç­‰å¾…ä¸»èŠ‚ç‚¹å‘æ¥æ˜¾å¼çš„ DEL å‘½ä»¤ã€‚
+     * ÔÚÔØÈëÊı¾İÊ±£¬»òÕß·şÎñÆ÷Îª¸½Êô½ÚµãÊ±£¬
+     * ¼´Ê¹ EXPIRE µÄ TTL Îª¸ºÊı£¬»òÕß EXPIREAT Ìá¹©µÄÊ±¼ä´ÁÒÑ¾­¹ıÆÚ£¬
+     * ·şÎñÆ÷Ò²²»»áÖ÷¶¯É¾³ıÕâ¸ö¼ü£¬¶øÊÇµÈ´ıÖ÷½Úµã·¢À´ÏÔÊ½µÄ DEL ÃüÁî¡£
      *
      * Instead we take the other branch of the IF statement setting an expire
      * (possibly in the past) and wait for an explicit DEL from the master. 
      *
-     * ç¨‹åºä¼šç»§ç»­å°†ï¼ˆä¸€ä¸ªå¯èƒ½å·²ç»è¿‡æœŸçš„ TTLï¼‰è®¾ç½®ä¸ºé”®çš„è¿‡æœŸæ—¶é—´ï¼Œ
-     * å¹¶ä¸”ç­‰å¾…ä¸»èŠ‚ç‚¹å‘æ¥ DEL å‘½ä»¤ã€‚
+     * ³ÌĞò»á¼ÌĞø½«£¨Ò»¸ö¿ÉÄÜÒÑ¾­¹ıÆÚµÄ TTL£©ÉèÖÃÎª¼üµÄ¹ıÆÚÊ±¼ä£¬
+     * ²¢ÇÒµÈ´ıÖ÷½Úµã·¢À´ DEL ÃüÁî¡£
      */
     if (when <= mstime() && !server.loading && !server.masterhost) {
 
-        // when æä¾›çš„æ—¶é—´å·²ç»è¿‡æœŸï¼ŒæœåŠ¡å™¨ä¸ºä¸»èŠ‚ç‚¹ï¼Œå¹¶ä¸”æ²¡åœ¨è½½å…¥æ•°æ®
+        // when Ìá¹©µÄÊ±¼äÒÑ¾­¹ıÆÚ£¬·şÎñÆ÷ÎªÖ÷½Úµã£¬²¢ÇÒÃ»ÔÚÔØÈëÊı¾İ
 
         robj *aux;
 
@@ -1291,7 +1291,7 @@ void expireGenericCommand(redisClient *c, long long basetime, int unit) {
         server.dirty++;
 
         /* Replicate/AOF this as an explicit DEL. */
-        // ä¼ æ’­ DEL å‘½ä»¤
+        // ´«²¥ DEL ÃüÁî
         aux = createStringObject("DEL",3);
 
         rewriteClientCommandVector(c,2,aux,key);
@@ -1305,9 +1305,9 @@ void expireGenericCommand(redisClient *c, long long basetime, int unit) {
         return;
     } else {
 
-        // è®¾ç½®é”®çš„è¿‡æœŸæ—¶é—´
-        // å¦‚æœæœåŠ¡å™¨ä¸ºé™„å±èŠ‚ç‚¹ï¼Œæˆ–è€…æœåŠ¡å™¨æ­£åœ¨è½½å…¥ï¼Œ
-        // é‚£ä¹ˆè¿™ä¸ª when æœ‰å¯èƒ½å·²ç»è¿‡æœŸçš„
+        // ÉèÖÃ¼üµÄ¹ıÆÚÊ±¼ä
+        // Èç¹û·şÎñÆ÷Îª¸½Êô½Úµã£¬»òÕß·şÎñÆ÷ÕıÔÚÔØÈë£¬
+        // ÄÇÃ´Õâ¸ö when ÓĞ¿ÉÄÜÒÑ¾­¹ıÆÚµÄ
         setExpire(c->db,key,when);
 
         addReply(c,shared.cone);
@@ -1338,19 +1338,19 @@ void pexpireatCommand(redisClient *c) {
 }
 
 /*
- * è¿”å›é”®çš„å‰©ä½™ç”Ÿå­˜æ—¶é—´ã€‚
+ * ·µ»Ø¼üµÄÊ£ÓàÉú´æÊ±¼ä¡£
  *
- * output_ms æŒ‡å®šè¿”å›å€¼çš„æ ¼å¼ï¼š
+ * output_ms Ö¸¶¨·µ»ØÖµµÄ¸ñÊ½£º
  *
- *  - ä¸º 1 æ—¶ï¼Œè¿”å›æ¯«ç§’
+ *  - Îª 1 Ê±£¬·µ»ØºÁÃë
  *
- *  - ä¸º 0 æ—¶ï¼Œè¿”å›ç§’
+ *  - Îª 0 Ê±£¬·µ»ØÃë
  */
 void ttlGenericCommand(redisClient *c, int output_ms) {
     long long expire, ttl = -1;
 
     /* If the key does not exist at all, return -2 */
-    // å–å‡ºé”®
+    // È¡³ö¼ü
     if (lookupKeyRead(c->db,c->argv[1]) == NULL) {
         addReplyLongLong(c,-2);
         return;
@@ -1358,21 +1358,21 @@ void ttlGenericCommand(redisClient *c, int output_ms) {
 
     /* The key exists. Return -1 if it has no expire, or the actual
      * TTL value otherwise. */
-    // å–å‡ºè¿‡æœŸæ—¶é—´
+    // È¡³ö¹ıÆÚÊ±¼ä
     expire = getExpire(c->db,c->argv[1]);
 
     if (expire != -1) {
-        // è®¡ç®—å‰©ä½™ç”Ÿå­˜æ—¶é—´
+        // ¼ÆËãÊ£ÓàÉú´æÊ±¼ä
         ttl = expire-mstime();
         if (ttl < 0) ttl = 0;
     }
 
     if (ttl == -1) {
-        // é”®æ˜¯æŒä¹…çš„
+        // ¼üÊÇ³Ö¾ÃµÄ
         addReplyLongLong(c,-1);
     } else {
-        // è¿”å› TTL 
-        // (ttl+500)/1000 è®¡ç®—çš„æ˜¯æ¸è¿‘ç§’æ•°
+        // ·µ»Ø TTL 
+        // (ttl+500)/1000 ¼ÆËãµÄÊÇ½¥½üÃëÊı
         addReplyLongLong(c,output_ms ? ttl : ((ttl+500)/1000));
     }
 }
@@ -1388,21 +1388,21 @@ void pttlCommand(redisClient *c) {
 void persistCommand(redisClient *c) {
     dictEntry *de;
 
-    // å–å‡ºé”®
+    // È¡³ö¼ü
     de = dictFind(c->db->dict,c->argv[1]->ptr);
 
     if (de == NULL) {
-        // é”®æ²¡æœ‰è¿‡æœŸæ—¶é—´
+        // ¼üÃ»ÓĞ¹ıÆÚÊ±¼ä
         addReply(c,shared.czero);
 
     } else {
 
-        // é”®å¸¦æœ‰è¿‡æœŸæ—¶é—´ï¼Œé‚£ä¹ˆå°†å®ƒç§»é™¤
+        // ¼ü´øÓĞ¹ıÆÚÊ±¼ä£¬ÄÇÃ´½«ËüÒÆ³ı
         if (removeExpire(c->db,c->argv[1])) {
             addReply(c,shared.cone);
             server.dirty++;
 
-        // é”®å·²ç»æ˜¯æŒä¹…çš„äº†
+        // ¼üÒÑ¾­ÊÇ³Ö¾ÃµÄÁË
         } else {
             addReply(c,shared.czero);
         }
@@ -1562,34 +1562,34 @@ int *sortGetKeys(struct redisCommand *cmd, robj **argv, int argc, int *numkeys) 
 /* Slot to Key API. This is used by Redis Cluster in order to obtain in
  * a fast way a key that belongs to a specified hash slot. This is useful
  * while rehashing the cluster. */
-// å°†ç»™å®šé”®æ·»åŠ åˆ°æ§½é‡Œé¢ï¼Œ
-// èŠ‚ç‚¹çš„ slots_to_keys ç”¨è·³è·ƒè¡¨è®°å½•äº† slot -> key ä¹‹é—´çš„æ˜ å°„
-// è¿™æ ·å¯ä»¥å¿«é€Ÿåœ°å¤„ç†æ§½å’Œé”®çš„å…³ç³»ï¼Œåœ¨ rehash æ§½æ—¶å¾ˆæœ‰ç”¨ã€‚
+// ½«¸ø¶¨¼üÌí¼Óµ½²ÛÀïÃæ£¬
+// ½ÚµãµÄ slots_to_keys ÓÃÌøÔ¾±í¼ÇÂ¼ÁË slot -> key Ö®¼äµÄÓ³Éä
+// ÕâÑù¿ÉÒÔ¿ìËÙµØ´¦Àí²ÛºÍ¼üµÄ¹ØÏµ£¬ÔÚ rehash ²ÛÊ±ºÜÓĞÓÃ¡£
 void slotToKeyAdd(robj *key) {
 
-    // è®¡ç®—å‡ºé”®æ‰€å±çš„æ§½
+    // ¼ÆËã³ö¼üËùÊôµÄ²Û
     unsigned int hashslot = keyHashSlot(key->ptr,sdslen(key->ptr));
 
-    // å°†æ§½ slot ä½œä¸ºåˆ†å€¼ï¼Œé”®ä½œä¸ºæˆå‘˜ï¼Œæ·»åŠ åˆ° slots_to_keys è·³è·ƒè¡¨é‡Œé¢
+    // ½«²Û slot ×÷Îª·ÖÖµ£¬¼ü×÷Îª³ÉÔ±£¬Ìí¼Óµ½ slots_to_keys ÌøÔ¾±íÀïÃæ
     zslInsert(server.cluster->slots_to_keys,hashslot,key);
     incrRefCount(key);
 }
 
-// ä»æ§½ä¸­åˆ é™¤ç»™å®šçš„é”® key
+// ´Ó²ÛÖĞÉ¾³ı¸ø¶¨µÄ¼ü key
 void slotToKeyDel(robj *key) {
     unsigned int hashslot = keyHashSlot(key->ptr,sdslen(key->ptr));
 
     zslDelete(server.cluster->slots_to_keys,hashslot,key);
 }
 
-// æ¸…ç©ºèŠ‚ç‚¹æ‰€æœ‰æ§½ä¿å­˜çš„æ‰€æœ‰é”®
+// Çå¿Õ½ÚµãËùÓĞ²Û±£´æµÄËùÓĞ¼ü
 void slotToKeyFlush(void) {
     zslFree(server.cluster->slots_to_keys);
     server.cluster->slots_to_keys = zslCreate();
 }
 
-// è®°å½• count ä¸ªå±äº hashslot æ§½çš„é”®åˆ° keys æ•°ç»„
-// å¹¶è¿”å›è¢«è®°å½•é”®çš„æ•°é‡
+// ¼ÇÂ¼ count ¸öÊôÓÚ hashslot ²ÛµÄ¼üµ½ keys Êı×é
+// ²¢·µ»Ø±»¼ÇÂ¼¼üµÄÊıÁ¿
 unsigned int getKeysInSlot(unsigned int hashslot, robj **keys, unsigned int count) {
     zskiplistNode *n;
     zrangespec range;
@@ -1598,13 +1598,13 @@ unsigned int getKeysInSlot(unsigned int hashslot, robj **keys, unsigned int coun
     range.min = range.max = hashslot;
     range.minex = range.maxex = 0;
 
-    // å®šä½åˆ°ç¬¬ä¸€ä¸ªå±äºæŒ‡å®š slot çš„é”®ä¸Šé¢
+    // ¶¨Î»µ½µÚÒ»¸öÊôÓÚÖ¸¶¨ slot µÄ¼üÉÏÃæ
     n = zslFirstInRange(server.cluster->slots_to_keys, &range);
-    // éå†è·³è·ƒè¡¨ï¼Œå¹¶ä¿å­˜å±äºæŒ‡å®š slot çš„é”®
-    // n && n->score æ£€æŸ¥å½“å‰é”®æ˜¯å¦å±äºæŒ‡å®š slot
-    // && count-- ç”¨æ¥è®¡æ•°
+    // ±éÀúÌøÔ¾±í£¬²¢±£´æÊôÓÚÖ¸¶¨ slot µÄ¼ü
+    // n && n->score ¼ì²éµ±Ç°¼üÊÇ·ñÊôÓÚÖ¸¶¨ slot
+    // && count-- ÓÃÀ´¼ÆÊı
     while(n && n->score == hashslot && count--) {
-        // è®°å½•é”®
+        // ¼ÇÂ¼¼ü
         keys[j++] = n->obj;
         n = n->level[0].forward;
     }
@@ -1633,7 +1633,7 @@ unsigned int delKeysInSlot(unsigned int hashslot) {
     return j;
 }
 
-// è¿”å›æŒ‡å®š slot åŒ…å«çš„é”®æ•°é‡
+// ·µ»ØÖ¸¶¨ slot °üº¬µÄ¼üÊıÁ¿
 unsigned int countKeysInSlot(unsigned int hashslot) {
     zskiplist *zsl = server.cluster->slots_to_keys;
     zskiplistNode *zn;
@@ -1644,30 +1644,30 @@ unsigned int countKeysInSlot(unsigned int hashslot) {
     range.minex = range.maxex = 0;
 
     /* Find first element in range */
-    // å®šä½åˆ°ç¬¬ä¸€ä¸ªåœ¨æŒ‡å®š slot ä¸Šçš„é”®
+    // ¶¨Î»µ½µÚÒ»¸öÔÚÖ¸¶¨ slot ÉÏµÄ¼ü
     zn = zslFirstInRange(zsl, &range);
 
     /* Use rank of first element, if any, to determine preliminary count */
-    // ä½¿ç”¨ç¬¬ä¸€ä¸ªæŒ‡å®š slot é”®çš„æ’ä½å‡å»æœ€åä¸€ä¸ªæŒ‡å®š slot é”®çš„æ’ä½
-    // è¿™ä¸€æ–¹æ³•æ¥è®¡ç®— slot é”®çš„æ•°é‡
-    // ç±»ä¼¼åŒºé—´ç®—æ³•
+    // Ê¹ÓÃµÚÒ»¸öÖ¸¶¨ slot ¼üµÄÅÅÎ»¼õÈ¥×îºóÒ»¸öÖ¸¶¨ slot ¼üµÄÅÅÎ»
+    // ÕâÒ»·½·¨À´¼ÆËã slot ¼üµÄÊıÁ¿
+    // ÀàËÆÇø¼äËã·¨
 
-    // ç¬¬ä¸€ä¸ªåœ¨æŒ‡å®š slot ä¸Šçš„é”®å­˜åœ¨
+    // µÚÒ»¸öÔÚÖ¸¶¨ slot ÉÏµÄ¼ü´æÔÚ
     if (zn != NULL) {
-        // è·å–ç¬¬ä¸€ä¸ªé”®çš„æ’ä½
+        // »ñÈ¡µÚÒ»¸ö¼üµÄÅÅÎ»
         rank = zslGetRank(zsl, zn->score, zn->obj);
         count = (zsl->length - (rank - 1));
 
         /* Find last element in range */
-        // è·å–æœ€åä¸€ä¸ªæŒ‡å®š slot çš„é”®
+        // »ñÈ¡×îºóÒ»¸öÖ¸¶¨ slot µÄ¼ü
         zn = zslLastInRange(zsl, &range);
 
         /* Use rank of last element, if any, to determine the actual count */
-        // æœ€åä¸€ä¸ªé”®å­˜åœ¨
+        // ×îºóÒ»¸ö¼ü´æÔÚ
         if (zn != NULL) {
-            // è·å–æ’ä½
+            // »ñÈ¡ÅÅÎ»
             rank = zslGetRank(zsl, zn->score, zn->obj);
-            // è®¡ç®—æ•°é‡
+            // ¼ÆËãÊıÁ¿
             count -= (zsl->length - rank);
         }
     }

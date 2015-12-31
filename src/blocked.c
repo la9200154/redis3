@@ -71,7 +71,7 @@
  * Note that if the timeout is zero (usually from the point of view of
  * commands API this means no timeout) the value stored into 'timeout'
  * is zero. */
-// æ ¹æ®è¾“å…¥å‚æ•°ï¼Œå–å‡ºæœ€å¤§ç­‰å¾…æ—¶é—´
+// ¸ù¾ÝÊäÈë²ÎÊý£¬È¡³ö×î´óµÈ´ýÊ±¼ä
 int getTimeoutFromObjectOrReply(redisClient *c, robj *object, mstime_t *timeout, int unit) {
     long long tval;
 
@@ -96,7 +96,7 @@ int getTimeoutFromObjectOrReply(redisClient *c, robj *object, mstime_t *timeout,
 /* Block a client for the specific operation type. Once the REDIS_BLOCKED
  * flag is set client query buffer is not longer processed, but accumulated,
  * and will be processed when the client is unblocked. */
-// å¯¹ç»™å®šçš„å®¢æˆ·ç«¯è¿›è¡Œé˜»å¡ž
+// ¶Ô¸ø¶¨µÄ¿Í»§¶Ë½øÐÐ×èÈû
 void blockClient(redisClient *c, int btype) {
     c->flags |= REDIS_BLOCKED;
     c->btype = btype;
@@ -106,7 +106,7 @@ void blockClient(redisClient *c, int btype) {
 /* This function is called in the beforeSleep() function of the event loop
  * in order to process the pending input buffer of clients that were
  * unblocked after a blocking operation. */
-// å–æ¶ˆæ‰€æœ‰åœ¨ unblocked_clients é“¾è¡¨ä¸­çš„å®¢æˆ·ç«¯çš„é˜»å¡žçŠ¶æ€
+// È¡ÏûËùÓÐÔÚ unblocked_clients Á´±íÖÐµÄ¿Í»§¶ËµÄ×èÈû×´Ì¬
 void processUnblockedClients(void) {
     listNode *ln;
     redisClient *c;
@@ -130,7 +130,7 @@ void processUnblockedClients(void) {
 
 /* Unblock a client calling the right function depending on the kind
  * of operation the client is blocking for. */
-// å–æ¶ˆç»™å®šçš„å®¢æˆ·ç«¯çš„é˜»å¡žçŠ¶æ€
+// È¡Ïû¸ø¶¨µÄ¿Í»§¶ËµÄ×èÈû×´Ì¬
 void unblockClient(redisClient *c) {
     if (c->btype == REDIS_BLOCKED_LIST) {
         unblockClientWaitingData(c);
@@ -150,7 +150,7 @@ void unblockClient(redisClient *c) {
 
 /* This function gets called when a blocked client timed out in order to
  * send it a reply of some kind. */
-// ç­‰å¾…è¶…æ—¶ï¼Œå‘è¢«é˜»å¡žçš„å®¢æˆ·ç«¯è¿”å›žé€šçŸ¥
+// µÈ´ý³¬Ê±£¬Ïò±»×èÈûµÄ¿Í»§¶Ë·µ»ØÍ¨Öª
 void replyToBlockedClientTimedOut(redisClient *c) {
     if (c->btype == REDIS_BLOCKED_LIST) {
         addReply(c,shared.nullmultibulk);

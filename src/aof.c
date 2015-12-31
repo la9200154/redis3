@@ -44,13 +44,13 @@ void aofUpdateCurrentSize(void);
 /* ----------------------------------------------------------------------------
  * AOF rewrite buffer implementation.
  *
- * AOF é‡å†™ç¼“å­˜çš„å®ç°ã€‚
+ * AOF ÖØĞ´»º´æµÄÊµÏÖ¡£
  *
  * The following code implement a simple buffer used in order to accumulate
  * changes while the background process is rewriting the AOF file.
  *
- * ä»¥ä¸‹ä»£ç å®ç°äº†ä¸€ä¸ªç®€å•çš„ç¼“å­˜ï¼Œ
- * å®ƒå¯ä»¥åœ¨ BGREWRITEAOF æ‰§è¡Œçš„è¿‡ç¨‹ä¸­ï¼Œç´¯ç§¯æ‰€æœ‰ä¿®æ”¹æ•°æ®é›†çš„å‘½ä»¤ã€‚
+ * ÒÔÏÂ´úÂëÊµÏÖÁËÒ»¸ö¼òµ¥µÄ»º´æ£¬
+ * Ëü¿ÉÒÔÔÚ BGREWRITEAOF Ö´ĞĞµÄ¹ı³ÌÖĞ£¬ÀÛ»ıËùÓĞĞŞ¸ÄÊı¾İ¼¯µÄÃüÁî¡£
  *
  * We only need to append, but can't just use realloc with a large block
  * because 'huge' reallocs are not always handled as one could expect
@@ -59,22 +59,22 @@ void aofUpdateCurrentSize(void);
  * For this reason we use a list of blocks, every block is
  * AOF_RW_BUF_BLOCK_SIZE bytes.
  *
- * ç¨‹åºéœ€è¦ä¸æ–­å¯¹è¿™ä¸ªç¼“å­˜æ‰§è¡Œ append æ“ä½œï¼Œ
- * å› ä¸ºåˆ†é…ä¸€ä¸ªéå¸¸å¤§çš„ç©ºé—´å¹¶ä¸æ€»æ˜¯å¯èƒ½çš„ï¼Œ
- * ä¹Ÿå¯èƒ½äº§ç”Ÿå¤§é‡çš„å¤åˆ¶å·¥ä½œï¼Œ
- * æ‰€ä»¥è¿™é‡Œä½¿ç”¨å¤šä¸ªå¤§å°ä¸º AOF_RW_BUF_BLOCK_SIZE çš„ç©ºé—´æ¥ä¿å­˜å‘½ä»¤ã€‚
+ * ³ÌĞòĞèÒª²»¶Ï¶ÔÕâ¸ö»º´æÖ´ĞĞ append ²Ù×÷£¬
+ * ÒòÎª·ÖÅäÒ»¸ö·Ç³£´óµÄ¿Õ¼ä²¢²»×ÜÊÇ¿ÉÄÜµÄ£¬
+ * Ò²¿ÉÄÜ²úÉú´óÁ¿µÄ¸´ÖÆ¹¤×÷£¬
+ * ËùÒÔÕâÀïÊ¹ÓÃ¶à¸ö´óĞ¡Îª AOF_RW_BUF_BLOCK_SIZE µÄ¿Õ¼äÀ´±£´æÃüÁî¡£
  *
  * ------------------------------------------------------------------------- */
 
-// æ¯ä¸ªç¼“å­˜å—çš„å¤§å°
+// Ã¿¸ö»º´æ¿éµÄ´óĞ¡
 #define AOF_RW_BUF_BLOCK_SIZE (1024*1024*10)    /* 10 MB per block */
 
 typedef struct aofrwblock {
     
-    // ç¼“å­˜å—å·²ä½¿ç”¨å­—èŠ‚æ•°å’Œå¯ç”¨å­—èŠ‚æ•°
+    // »º´æ¿éÒÑÊ¹ÓÃ×Ö½ÚÊıºÍ¿ÉÓÃ×Ö½ÚÊı
     unsigned long used, free;
 
-    // ç¼“å­˜å—
+    // »º´æ¿é
     char buf[AOF_RW_BUF_BLOCK_SIZE];
 
 } aofrwblock;
@@ -83,35 +83,35 @@ typedef struct aofrwblock {
  * a fresh new one. It tests for server.aof_rewrite_buf_blocks equal to NULL
  * so can be used for the first initialization as well. 
  *
- * é‡Šæ”¾æ—§çš„ AOF é‡å†™ç¼“å­˜ï¼Œå¹¶åˆå§‹åŒ–ä¸€ä¸ªæ–°çš„ AOF ç¼“å­˜ã€‚
+ * ÊÍ·Å¾ÉµÄ AOF ÖØĞ´»º´æ£¬²¢³õÊ¼»¯Ò»¸öĞÂµÄ AOF »º´æ¡£
  *
- * è¿™ä¸ªå‡½æ•°ä¹Ÿå¯ä»¥å•çº¯åœ°ç”¨äº AOF é‡å†™ç¼“å­˜çš„åˆå§‹åŒ–ã€‚
+ * Õâ¸öº¯ÊıÒ²¿ÉÒÔµ¥´¿µØÓÃÓÚ AOF ÖØĞ´»º´æµÄ³õÊ¼»¯¡£
  */
 void aofRewriteBufferReset(void) {
 
-    // é‡Šæ”¾æ—§æœ‰çš„ç¼“å­˜ï¼ˆé“¾è¡¨ï¼‰
+    // ÊÍ·Å¾ÉÓĞµÄ»º´æ£¨Á´±í£©
     if (server.aof_rewrite_buf_blocks)
         listRelease(server.aof_rewrite_buf_blocks);
 
-    // åˆå§‹åŒ–æ–°çš„ç¼“å­˜ï¼ˆé“¾è¡¨ï¼‰
+    // ³õÊ¼»¯ĞÂµÄ»º´æ£¨Á´±í£©
     server.aof_rewrite_buf_blocks = listCreate();
     listSetFreeMethod(server.aof_rewrite_buf_blocks,zfree);
 }
 
 /* Return the current size of the AOF rerwite buffer. 
  *
- * è¿”å› AOF é‡å†™ç¼“å­˜å½“å‰çš„å¤§å°
+ * ·µ»Ø AOF ÖØĞ´»º´æµ±Ç°µÄ´óĞ¡
  */
 unsigned long aofRewriteBufferSize(void) {
 
-    // å–å‡ºé“¾è¡¨ä¸­æœ€åçš„ç¼“å­˜å—
+    // È¡³öÁ´±íÖĞ×îºóµÄ»º´æ¿é
     listNode *ln = listLast(server.aof_rewrite_buf_blocks);
     aofrwblock *block = ln ? ln->value : NULL;
 
-    // æ²¡æœ‰ç¼“å­˜è¢«ä½¿ç”¨
+    // Ã»ÓĞ»º´æ±»Ê¹ÓÃ
     if (block == NULL) return 0;
 
-    // æ€»ç¼“å­˜å¤§å° = ï¼ˆç¼“å­˜å—æ•°é‡-1ï¼‰ * AOF_RW_BUF_BLOCK_SIZE + æœ€åä¸€ä¸ªç¼“å­˜å—çš„å¤§å°
+    // ×Ü»º´æ´óĞ¡ = £¨»º´æ¿éÊıÁ¿-1£© * AOF_RW_BUF_BLOCK_SIZE + ×îºóÒ»¸ö»º´æ¿éµÄ´óĞ¡
     unsigned long size =
         (listLength(server.aof_rewrite_buf_blocks)-1) * AOF_RW_BUF_BLOCK_SIZE;
     size += block->used;
@@ -121,12 +121,12 @@ unsigned long aofRewriteBufferSize(void) {
 
 /* Append data to the AOF rewrite buffer, allocating new blocks if needed. 
  *
- * å°†å­—ç¬¦æ•°ç»„ s è¿½åŠ åˆ° AOF ç¼“å­˜çš„æœ«å°¾ï¼Œ
- * å¦‚æœæœ‰éœ€è¦çš„è¯ï¼Œåˆ†é…ä¸€ä¸ªæ–°çš„ç¼“å­˜å—ã€‚
+ * ½«×Ö·ûÊı×é s ×·¼Óµ½ AOF »º´æµÄÄ©Î²£¬
+ * Èç¹ûÓĞĞèÒªµÄ»°£¬·ÖÅäÒ»¸öĞÂµÄ»º´æ¿é¡£
  */
 void aofRewriteBufferAppend(unsigned char *s, unsigned long len) {
 
-    // æŒ‡å‘æœ€åä¸€ä¸ªç¼“å­˜å—
+    // Ö¸Ïò×îºóÒ»¸ö»º´æ¿é
     listNode *ln = listLast(server.aof_rewrite_buf_blocks);
     aofrwblock *block = ln ? ln->value : NULL;
 
@@ -134,7 +134,7 @@ void aofRewriteBufferAppend(unsigned char *s, unsigned long len) {
         /* If we already got at least an allocated block, try appending
          * at least some piece into it. 
          *
-         * å¦‚æœå·²ç»æœ‰è‡³å°‘ä¸€ä¸ªç¼“å­˜å—ï¼Œé‚£ä¹ˆå°è¯•å°†å†…å®¹è¿½åŠ åˆ°è¿™ä¸ªç¼“å­˜å—é‡Œé¢
+         * Èç¹ûÒÑ¾­ÓĞÖÁÉÙÒ»¸ö»º´æ¿é£¬ÄÇÃ´³¢ÊÔ½«ÄÚÈİ×·¼Óµ½Õâ¸ö»º´æ¿éÀïÃæ
          */
         if (block) {
             unsigned long thislen = (block->free < len) ? block->free : len;
@@ -147,23 +147,23 @@ void aofRewriteBufferAppend(unsigned char *s, unsigned long len) {
             }
         }
 
-        // å¦‚æœ block != NULL ï¼Œé‚£ä¹ˆè¿™é‡Œæ˜¯åˆ›å»ºå¦ä¸€ä¸ªç¼“å­˜å—ä¹°å®¹çº³ block è£…ä¸ä¸‹çš„å†…å®¹
-        // å¦‚æœ block == NULL ï¼Œé‚£ä¹ˆè¿™é‡Œæ˜¯åˆ›å»ºç¼“å­˜é“¾è¡¨çš„ç¬¬ä¸€ä¸ªç¼“å­˜å—
+        // Èç¹û block != NULL £¬ÄÇÃ´ÕâÀïÊÇ´´½¨ÁíÒ»¸ö»º´æ¿éÂòÈİÄÉ block ×°²»ÏÂµÄÄÚÈİ
+        // Èç¹û block == NULL £¬ÄÇÃ´ÕâÀïÊÇ´´½¨»º´æÁ´±íµÄµÚÒ»¸ö»º´æ¿é
         if (len) { /* First block to allocate, or need another block. */
             int numblocks;
 
-            // åˆ†é…ç¼“å­˜å—
+            // ·ÖÅä»º´æ¿é
             block = zmalloc(sizeof(*block));
             block->free = AOF_RW_BUF_BLOCK_SIZE;
             block->used = 0;
 
-            // é“¾æ¥åˆ°é“¾è¡¨æœ«å°¾
+            // Á´½Óµ½Á´±íÄ©Î²
             listAddNodeTail(server.aof_rewrite_buf_blocks,block);
 
             /* Log every time we cross more 10 or 100 blocks, respectively
              * as a notice or warning. 
              *
-             * æ¯æ¬¡åˆ›å»º 10 ä¸ªç¼“å­˜å—å°±æ‰“å°ä¸€ä¸ªæ—¥å¿—ï¼Œç”¨ä½œæ ‡è®°æˆ–è€…æé†’
+             * Ã¿´Î´´½¨ 10 ¸ö»º´æ¿é¾Í´òÓ¡Ò»¸öÈÕÖ¾£¬ÓÃ×÷±ê¼Ç»òÕßÌáĞÑ
              */
             numblocks = listLength(server.aof_rewrite_buf_blocks);
             if (((numblocks+1) % 10) == 0) {
@@ -180,17 +180,17 @@ void aofRewriteBufferAppend(unsigned char *s, unsigned long len) {
  * fd. If a short write or any other error happens -1 is returned,
  * otherwise the number of bytes written is returned. 
  *
- * å°†é‡å†™ç¼“å­˜ä¸­çš„æ‰€æœ‰å†…å®¹ï¼ˆå¯èƒ½ç”±å¤šä¸ªå—ç»„æˆï¼‰å†™å…¥åˆ°ç»™å®š fd ä¸­ã€‚
+ * ½«ÖØĞ´»º´æÖĞµÄËùÓĞÄÚÈİ£¨¿ÉÄÜÓÉ¶à¸ö¿é×é³É£©Ğ´Èëµ½¸ø¶¨ fd ÖĞ¡£
  *
- * å¦‚æœæ²¡æœ‰ short write æˆ–è€…å…¶ä»–é”™è¯¯å‘ç”Ÿï¼Œé‚£ä¹ˆè¿”å›å†™å…¥çš„å­—èŠ‚æ•°é‡ï¼Œ
- * å¦åˆ™ï¼Œè¿”å› -1 ã€‚
+ * Èç¹ûÃ»ÓĞ short write »òÕßÆäËû´íÎó·¢Éú£¬ÄÇÃ´·µ»ØĞ´ÈëµÄ×Ö½ÚÊıÁ¿£¬
+ * ·ñÔò£¬·µ»Ø -1 ¡£
  */
 ssize_t aofRewriteBufferWrite(int fd) {
     listNode *ln;
     listIter li;
     ssize_t count = 0;
 
-    // éå†æ‰€æœ‰ç¼“å­˜å—
+    // ±éÀúËùÓĞ»º´æ¿é
     listRewind(server.aof_rewrite_buf_blocks,&li);
     while((ln = listNext(&li))) {
         aofrwblock *block = listNodeValue(ln);
@@ -198,14 +198,14 @@ ssize_t aofRewriteBufferWrite(int fd) {
 
         if (block->used) {
 
-            // å†™å…¥ç¼“å­˜å—å†…å®¹åˆ° fd
+            // Ğ´Èë»º´æ¿éÄÚÈİµ½ fd
             nwritten = write(fd,block->buf,block->used);
             if (nwritten != block->used) {
                 if (nwritten == 0) errno = EIO;
                 return -1;
             }
 
-            // ç§¯ç´¯å†™å…¥å­—èŠ‚
+            // »ıÀÛĞ´Èë×Ö½Ú
             count += nwritten;
         }
     }
@@ -220,7 +220,7 @@ ssize_t aofRewriteBufferWrite(int fd) {
 /* Starts a background task that performs fsync() against the specified
  * file descriptor (the one of the AOF file) in another thread. 
  *
- * åœ¨å¦ä¸€ä¸ªçº¿ç¨‹ä¸­ï¼Œå¯¹ç»™å®šçš„æè¿°ç¬¦ fd ï¼ˆæŒ‡å‘ AOF æ–‡ä»¶ï¼‰æ‰§è¡Œä¸€ä¸ªåå° fsync() æ“ä½œã€‚
+ * ÔÚÁíÒ»¸öÏß³ÌÖĞ£¬¶Ô¸ø¶¨µÄÃèÊö·û fd £¨Ö¸Ïò AOF ÎÄ¼ş£©Ö´ĞĞÒ»¸öºóÌ¨ fsync() ²Ù×÷¡£
  */
 void aof_background_fsync(int fd) {
     bioCreateBackgroundJob(REDIS_BIO_AOF_FSYNC,(void*)(long)fd,NULL,NULL);
@@ -229,32 +229,32 @@ void aof_background_fsync(int fd) {
 /* Called when the user switches from "appendonly yes" to "appendonly no"
  * at runtime using the CONFIG command. 
  *
- * åœ¨ç”¨æˆ·é€šè¿‡ CONFIG å‘½ä»¤åœ¨è¿è¡Œæ—¶å…³é—­ AOF æŒä¹…åŒ–æ—¶è°ƒç”¨
+ * ÔÚÓÃ»§Í¨¹ı CONFIG ÃüÁîÔÚÔËĞĞÊ±¹Ø±Õ AOF ³Ö¾Ã»¯Ê±µ÷ÓÃ
  */
 void stopAppendOnly(void) {
 
-    // AOF å¿…é¡»æ­£åœ¨å¯ç”¨ï¼Œæ‰èƒ½è°ƒç”¨è¿™ä¸ªå‡½æ•°
+    // AOF ±ØĞëÕıÔÚÆôÓÃ£¬²ÅÄÜµ÷ÓÃÕâ¸öº¯Êı
     redisAssert(server.aof_state != REDIS_AOF_OFF);
 
-    // å°† AOF ç¼“å­˜çš„å†…å®¹å†™å…¥å¹¶å†²æ´—åˆ° AOF æ–‡ä»¶ä¸­
-    // å‚æ•° 1 è¡¨ç¤ºå¼ºåˆ¶æ¨¡å¼
+    // ½« AOF »º´æµÄÄÚÈİĞ´Èë²¢³åÏ´µ½ AOF ÎÄ¼şÖĞ
+    // ²ÎÊı 1 ±íÊ¾Ç¿ÖÆÄ£Ê½
     flushAppendOnlyFile(1);
 
-    // å†²æ´— AOF æ–‡ä»¶
+    // ³åÏ´ AOF ÎÄ¼ş
     aof_fsync(server.aof_fd);
 
-    // å…³é—­ AOF æ–‡ä»¶
+    // ¹Ø±Õ AOF ÎÄ¼ş
     close(server.aof_fd);
 
-    // æ¸…ç©º AOF çŠ¶æ€
+    // Çå¿Õ AOF ×´Ì¬
     server.aof_fd = -1;
     server.aof_selected_db = -1;
     server.aof_state = REDIS_AOF_OFF;
 
     /* rewrite operation in progress? kill it, wait child exit 
     *
-    * å¦‚æœ BGREWRITEAOF æ­£åœ¨æ‰§è¡Œï¼Œé‚£ä¹ˆæ€æ­»å®ƒ
-    * å¹¶ç­‰å¾…å­è¿›ç¨‹é€€å‡º
+    * Èç¹û BGREWRITEAOF ÕıÔÚÖ´ĞĞ£¬ÄÇÃ´É±ËÀËü
+    * ²¢µÈ´ı×Ó½ø³ÌÍË³ö
     */
     if (server.aof_child_pid != -1) {
         int statloc;
@@ -262,12 +262,12 @@ void stopAppendOnly(void) {
         redisLog(REDIS_NOTICE,"Killing running AOF rewrite child: %ld",
             (long) server.aof_child_pid);
 
-        // æ€æ­»å­è¿›ç¨‹
+        // É±ËÀ×Ó½ø³Ì
         if (kill(server.aof_child_pid,SIGUSR1) != -1)
             wait3(&statloc,0,NULL);
 
         /* reset the buffer accumulating changes while the child saves 
-         * æ¸…ç†æœªå®Œæˆçš„ AOF é‡å†™ç•™ä¸‹æ¥çš„ç¼“å­˜å’Œä¸´æ—¶æ–‡ä»¶
+         * ÇåÀíÎ´Íê³ÉµÄ AOF ÖØĞ´ÁôÏÂÀ´µÄ»º´æºÍÁÙÊ±ÎÄ¼ş
          */
         aofRewriteBufferReset();
         aofRemoveTempFile(server.aof_child_pid);
@@ -279,27 +279,27 @@ void stopAppendOnly(void) {
 /* Called when the user switches from "appendonly no" to "appendonly yes"
  * at runtime using the CONFIG command. 
  *
- * å½“ç”¨æˆ·åœ¨è¿è¡Œæ—¶ä½¿ç”¨ CONFIG å‘½ä»¤ï¼Œ
- * ä» appendonly no åˆ‡æ¢åˆ° appendonly yes æ—¶æ‰§è¡Œ
+ * µ±ÓÃ»§ÔÚÔËĞĞÊ±Ê¹ÓÃ CONFIG ÃüÁî£¬
+ * ´Ó appendonly no ÇĞ»»µ½ appendonly yes Ê±Ö´ĞĞ
  */
 int startAppendOnly(void) {
 
-    // å°†å¼€å§‹æ—¶é—´è®¾ä¸º AOF æœ€åä¸€æ¬¡ fsync æ—¶é—´ 
+    // ½«¿ªÊ¼Ê±¼äÉèÎª AOF ×îºóÒ»´Î fsync Ê±¼ä 
     server.aof_last_fsync = server.unixtime;
 
-    // æ‰“å¼€ AOF æ–‡ä»¶
+    // ´ò¿ª AOF ÎÄ¼ş
     server.aof_fd = open(server.aof_filename,O_WRONLY|O_APPEND|O_CREAT,0644);
 
     redisAssert(server.aof_state == REDIS_AOF_OFF);
 
-    // æ–‡ä»¶æ‰“å¼€å¤±è´¥
+    // ÎÄ¼ş´ò¿ªÊ§°Ü
     if (server.aof_fd == -1) {
         redisLog(REDIS_WARNING,"Redis needs to enable the AOF but can't open the append only file: %s",strerror(errno));
         return REDIS_ERR;
     }
 
     if (rewriteAppendOnlyFileBackground() == REDIS_ERR) {
-        // AOF åå°é‡å†™å¤±è´¥ï¼Œå…³é—­ AOF æ–‡ä»¶
+        // AOF ºóÌ¨ÖØĞ´Ê§°Ü£¬¹Ø±Õ AOF ÎÄ¼ş
         close(server.aof_fd);
         redisLog(REDIS_WARNING,"Redis needs to enable the AOF but can't trigger a background AOF rewrite operation. Check the above logs for more info about the error.");
         return REDIS_ERR;
@@ -308,7 +308,7 @@ int startAppendOnly(void) {
     /* We correctly switched on AOF, now wait for the rerwite to be complete
      * in order to append data on disk. 
      *
-     * ç­‰å¾…é‡å†™æ‰§è¡Œå®Œæ¯•
+     * µÈ´ıÖØĞ´Ö´ĞĞÍê±Ï
      */
     server.aof_state = REDIS_AOF_WAIT_REWRITE;
 
@@ -317,7 +317,7 @@ int startAppendOnly(void) {
 
 /* Write the append only file buffer on disk.
  *
- * å°† AOF ç¼“å­˜å†™å…¥åˆ°æ–‡ä»¶ä¸­ã€‚
+ * ½« AOF »º´æĞ´Èëµ½ÎÄ¼şÖĞ¡£
  *
  * Since we are required to write the AOF before replying to the client,
  * and the only way the client socket can get a write is entering when the
@@ -325,71 +325,71 @@ int startAppendOnly(void) {
  * buffer and write it on disk using this function just before entering
  * the event loop again.
  *
- * å› ä¸ºç¨‹åºéœ€è¦åœ¨å›å¤å®¢æˆ·ç«¯ä¹‹å‰å¯¹ AOF æ‰§è¡Œå†™æ“ä½œã€‚
- * è€Œå®¢æˆ·ç«¯èƒ½æ‰§è¡Œå†™æ“ä½œçš„å”¯ä¸€æœºä¼šå°±æ˜¯åœ¨äº‹ä»¶ loop ä¸­ï¼Œ
- * å› æ­¤ï¼Œç¨‹åºå°†æ‰€æœ‰ AOF å†™ç´¯ç§¯åˆ°ç¼“å­˜ä¸­ï¼Œ
- * å¹¶åœ¨é‡æ–°è¿›å…¥äº‹ä»¶ loop ä¹‹å‰ï¼Œå°†ç¼“å­˜å†™å…¥åˆ°æ–‡ä»¶ä¸­ã€‚
+ * ÒòÎª³ÌĞòĞèÒªÔÚ»Ø¸´¿Í»§¶ËÖ®Ç°¶Ô AOF Ö´ĞĞĞ´²Ù×÷¡£
+ * ¶ø¿Í»§¶ËÄÜÖ´ĞĞĞ´²Ù×÷µÄÎ¨Ò»»ú»á¾ÍÊÇÔÚÊÂ¼ş loop ÖĞ£¬
+ * Òò´Ë£¬³ÌĞò½«ËùÓĞ AOF Ğ´ÀÛ»ıµ½»º´æÖĞ£¬
+ * ²¢ÔÚÖØĞÂ½øÈëÊÂ¼ş loop Ö®Ç°£¬½«»º´æĞ´Èëµ½ÎÄ¼şÖĞ¡£
  *
  * About the 'force' argument:
  *
- * å…³äº force å‚æ•°ï¼š
+ * ¹ØÓÚ force ²ÎÊı£º
  *
  * When the fsync policy is set to 'everysec' we may delay the flush if there
  * is still an fsync() going on in the background thread, since for instance
  * on Linux write(2) will be blocked by the background fsync anyway.
  *
- * å½“ fsync ç­–ç•¥ä¸ºæ¯ç§’é’Ÿä¿å­˜ä¸€æ¬¡æ—¶ï¼Œå¦‚æœåå°çº¿ç¨‹ä»ç„¶æœ‰ fsync åœ¨æ‰§è¡Œï¼Œ
- * é‚£ä¹ˆæˆ‘ä»¬å¯èƒ½ä¼šå»¶è¿Ÿæ‰§è¡Œå†²æ´—ï¼ˆflushï¼‰æ“ä½œï¼Œ
- * å› ä¸º Linux ä¸Šçš„ write(2) ä¼šè¢«åå°çš„ fsync é˜»å¡ã€‚
+ * µ± fsync ²ßÂÔÎªÃ¿ÃëÖÓ±£´æÒ»´ÎÊ±£¬Èç¹ûºóÌ¨Ïß³ÌÈÔÈ»ÓĞ fsync ÔÚÖ´ĞĞ£¬
+ * ÄÇÃ´ÎÒÃÇ¿ÉÄÜ»áÑÓ³ÙÖ´ĞĞ³åÏ´£¨flush£©²Ù×÷£¬
+ * ÒòÎª Linux ÉÏµÄ write(2) »á±»ºóÌ¨µÄ fsync ×èÈû¡£
  *
  * When this happens we remember that there is some aof buffer to be
  * flushed ASAP, and will try to do that in the serverCron() function.
  *
- * å½“è¿™ç§æƒ…å†µå‘ç”Ÿæ—¶ï¼Œè¯´æ˜éœ€è¦å°½å¿«å†²æ´— aof ç¼“å­˜ï¼Œ
- * ç¨‹åºä¼šå°è¯•åœ¨ serverCron() å‡½æ•°ä¸­å¯¹ç¼“å­˜è¿›è¡Œå†²æ´—ã€‚
+ * µ±ÕâÖÖÇé¿ö·¢ÉúÊ±£¬ËµÃ÷ĞèÒª¾¡¿ì³åÏ´ aof »º´æ£¬
+ * ³ÌĞò»á³¢ÊÔÔÚ serverCron() º¯ÊıÖĞ¶Ô»º´æ½øĞĞ³åÏ´¡£
  *
  * However if force is set to 1 we'll write regardless of the background
  * fsync. 
  *
- * ä¸è¿‡ï¼Œå¦‚æœ force ä¸º 1 çš„è¯ï¼Œé‚£ä¹ˆä¸ç®¡åå°æ˜¯å¦æ­£åœ¨ fsync ï¼Œ
- * ç¨‹åºéƒ½ç›´æ¥è¿›è¡Œå†™å…¥ã€‚
+ * ²»¹ı£¬Èç¹û force Îª 1 µÄ»°£¬ÄÇÃ´²»¹ÜºóÌ¨ÊÇ·ñÕıÔÚ fsync £¬
+ * ³ÌĞò¶¼Ö±½Ó½øĞĞĞ´Èë¡£
  */
 #define AOF_WRITE_LOG_ERROR_RATE 30 /* Seconds between errors logging. */
 void flushAppendOnlyFile(int force) {
     ssize_t nwritten;
     int sync_in_progress = 0;
 
-    // ç¼“å†²åŒºä¸­æ²¡æœ‰ä»»ä½•å†…å®¹ï¼Œç›´æ¥è¿”å›
+    // »º³åÇøÖĞÃ»ÓĞÈÎºÎÄÚÈİ£¬Ö±½Ó·µ»Ø
     if (sdslen(server.aof_buf) == 0) return;
 
-    // ç­–ç•¥ä¸ºæ¯ç§’ FSYNC 
+    // ²ßÂÔÎªÃ¿Ãë FSYNC 
     if (server.aof_fsync == AOF_FSYNC_EVERYSEC)
-        // æ˜¯å¦æœ‰ SYNC æ­£åœ¨åå°è¿›è¡Œï¼Ÿ
+        // ÊÇ·ñÓĞ SYNC ÕıÔÚºóÌ¨½øĞĞ£¿
         sync_in_progress = bioPendingJobsOfType(REDIS_BIO_AOF_FSYNC) != 0;
 
-    // æ¯ç§’ fsync ï¼Œå¹¶ä¸”å¼ºåˆ¶å†™å…¥ä¸ºå‡
+    // Ã¿Ãë fsync £¬²¢ÇÒÇ¿ÖÆĞ´ÈëÎª¼Ù
     if (server.aof_fsync == AOF_FSYNC_EVERYSEC && !force) {
 
         /* With this append fsync policy we do background fsyncing.
          *
-         * å½“ fsync ç­–ç•¥ä¸ºæ¯ç§’é’Ÿä¸€æ¬¡æ—¶ï¼Œ fsync åœ¨åå°æ‰§è¡Œã€‚
+         * µ± fsync ²ßÂÔÎªÃ¿ÃëÖÓÒ»´ÎÊ±£¬ fsync ÔÚºóÌ¨Ö´ĞĞ¡£
          *
          * If the fsync is still in progress we can try to delay
          * the write for a couple of seconds. 
          *
-         * å¦‚æœåå°ä»åœ¨æ‰§è¡Œ FSYNC ï¼Œé‚£ä¹ˆæˆ‘ä»¬å¯ä»¥å»¶è¿Ÿå†™æ“ä½œä¸€ä¸¤ç§’
-         * ï¼ˆå¦‚æœå¼ºåˆ¶æ‰§è¡Œ write çš„è¯ï¼ŒæœåŠ¡å™¨ä¸»çº¿ç¨‹å°†é˜»å¡åœ¨ write ä¸Šé¢ï¼‰
+         * Èç¹ûºóÌ¨ÈÔÔÚÖ´ĞĞ FSYNC £¬ÄÇÃ´ÎÒÃÇ¿ÉÒÔÑÓ³ÙĞ´²Ù×÷Ò»Á½Ãë
+         * £¨Èç¹ûÇ¿ÖÆÖ´ĞĞ write µÄ»°£¬·şÎñÆ÷Ö÷Ïß³Ì½«×èÈûÔÚ write ÉÏÃæ£©
          */
         if (sync_in_progress) {
 
-            // æœ‰ fsync æ­£åœ¨åå°è¿›è¡Œ ã€‚ã€‚ã€‚
+            // ÓĞ fsync ÕıÔÚºóÌ¨½øĞĞ ¡£¡£¡£
 
             if (server.aof_flush_postponed_start == 0) {
                 /* No previous write postponinig, remember that we are
                  * postponing the flush and return. 
                  *
-                 * å‰é¢æ²¡æœ‰æ¨è¿Ÿè¿‡ write æ“ä½œï¼Œè¿™é‡Œå°†æ¨è¿Ÿå†™æ“ä½œçš„æ—¶é—´è®°å½•ä¸‹æ¥
-                 * ç„¶åå°±è¿”å›ï¼Œä¸æ‰§è¡Œ write æˆ–è€… fsync
+                 * Ç°ÃæÃ»ÓĞÍÆ³Ù¹ı write ²Ù×÷£¬ÕâÀï½«ÍÆ³ÙĞ´²Ù×÷µÄÊ±¼ä¼ÇÂ¼ÏÂÀ´
+                 * È»ºó¾Í·µ»Ø£¬²»Ö´ĞĞ write »òÕß fsync
                  */
                 server.aof_flush_postponed_start = server.unixtime;
                 return;
@@ -398,9 +398,9 @@ void flushAppendOnlyFile(int force) {
                 /* We were already waiting for fsync to finish, but for less
                  * than two seconds this is still ok. Postpone again. 
                  *
-                 * å¦‚æœä¹‹å‰å·²ç»å› ä¸º fsync è€Œæ¨è¿Ÿäº† write æ“ä½œ
-                 * ä½†æ˜¯æ¨è¿Ÿçš„æ—¶é—´ä¸è¶…è¿‡ 2 ç§’ï¼Œé‚£ä¹ˆç›´æ¥è¿”å›
-                 * ä¸æ‰§è¡Œ write æˆ–è€… fsync
+                 * Èç¹ûÖ®Ç°ÒÑ¾­ÒòÎª fsync ¶øÍÆ³ÙÁË write ²Ù×÷
+                 * µ«ÊÇÍÆ³ÙµÄÊ±¼ä²»³¬¹ı 2 Ãë£¬ÄÇÃ´Ö±½Ó·µ»Ø
+                 * ²»Ö´ĞĞ write »òÕß fsync
                  */
                 return;
 
@@ -409,8 +409,8 @@ void flushAppendOnlyFile(int force) {
             /* Otherwise fall trough, and go write since we can't wait
              * over two seconds. 
              *
-             * å¦‚æœåå°è¿˜æœ‰ fsync åœ¨æ‰§è¡Œï¼Œå¹¶ä¸” write å·²ç»æ¨è¿Ÿ >= 2 ç§’
-             * é‚£ä¹ˆæ‰§è¡Œå†™æ“ä½œï¼ˆwrite å°†è¢«é˜»å¡ï¼‰
+             * Èç¹ûºóÌ¨»¹ÓĞ fsync ÔÚÖ´ĞĞ£¬²¢ÇÒ write ÒÑ¾­ÍÆ³Ù >= 2 Ãë
+             * ÄÇÃ´Ö´ĞĞĞ´²Ù×÷£¨write ½«±»×èÈû£©
              */
             server.aof_delayed_fsync++;
             redisLog(REDIS_NOTICE,"Asynchronous AOF fsync is taking too long (disk is busy?). Writing the AOF buffer without waiting for fsync to complete, this may slow down Redis.");
@@ -420,23 +420,23 @@ void flushAppendOnlyFile(int force) {
     /* If you are following this code path, then we are going to write so
      * set reset the postponed flush sentinel to zero. 
      *
-     * æ‰§è¡Œåˆ°è¿™é‡Œï¼Œç¨‹åºä¼šå¯¹ AOF æ–‡ä»¶è¿›è¡Œå†™å…¥ã€‚
+     * Ö´ĞĞµ½ÕâÀï£¬³ÌĞò»á¶Ô AOF ÎÄ¼ş½øĞĞĞ´Èë¡£
      *
-     * æ¸…é›¶å»¶è¿Ÿ write çš„æ—¶é—´è®°å½•
+     * ÇåÁãÑÓ³Ù write µÄÊ±¼ä¼ÇÂ¼
      */
     server.aof_flush_postponed_start = 0;
 
     /* We want to perform a single write. This should be guaranteed atomic
      * at least if the filesystem we are writing is a real physical one.
      *
-     * æ‰§è¡Œå•ä¸ª write æ“ä½œï¼Œå¦‚æœå†™å…¥è®¾å¤‡æ˜¯ç‰©ç†çš„è¯ï¼Œé‚£ä¹ˆè¿™ä¸ªæ“ä½œåº”è¯¥æ˜¯åŸå­çš„
+     * Ö´ĞĞµ¥¸ö write ²Ù×÷£¬Èç¹ûĞ´ÈëÉè±¸ÊÇÎïÀíµÄ»°£¬ÄÇÃ´Õâ¸ö²Ù×÷Ó¦¸ÃÊÇÔ­×ÓµÄ
      *
      * While this will save us against the server being killed I don't think
      * there is much to do about the whole server stopping for power problems
      * or alike 
      *
-     * å½“ç„¶ï¼Œå¦‚æœå‡ºç°åƒç”µæºä¸­æ–­è¿™æ ·çš„ä¸å¯æŠ—ç°è±¡ï¼Œé‚£ä¹ˆ AOF æ–‡ä»¶ä¹Ÿæ˜¯å¯èƒ½ä¼šå‡ºç°é—®é¢˜çš„
-     * è¿™æ—¶å°±è¦ç”¨ redis-check-aof ç¨‹åºæ¥è¿›è¡Œä¿®å¤ã€‚
+     * µ±È»£¬Èç¹û³öÏÖÏñµçÔ´ÖĞ¶ÏÕâÑùµÄ²»¿É¿¹ÏÖÏó£¬ÄÇÃ´ AOF ÎÄ¼şÒ²ÊÇ¿ÉÄÜ»á³öÏÖÎÊÌâµÄ
+     * ÕâÊ±¾ÍÒªÓÃ redis-check-aof ³ÌĞòÀ´½øĞĞĞŞ¸´¡£
      */
     nwritten = write(server.aof_fd,server.aof_buf,sdslen(server.aof_buf));
     if (nwritten != (signed)sdslen(server.aof_buf)) {
@@ -445,14 +445,14 @@ void flushAppendOnlyFile(int force) {
         int can_log = 0;
 
         /* Limit logging rate to 1 line per AOF_WRITE_LOG_ERROR_RATE seconds. */
-        // å°†æ—¥å¿—çš„è®°å½•é¢‘ç‡é™åˆ¶åœ¨æ¯è¡Œ AOF_WRITE_LOG_ERROR_RATE ç§’
+        // ½«ÈÕÖ¾µÄ¼ÇÂ¼ÆµÂÊÏŞÖÆÔÚÃ¿ĞĞ AOF_WRITE_LOG_ERROR_RATE Ãë
         if ((server.unixtime - last_write_error_log) > AOF_WRITE_LOG_ERROR_RATE) {
             can_log = 1;
             last_write_error_log = server.unixtime;
         }
 
         /* Lof the AOF write error and record the error code. */
-        // å¦‚æœå†™å…¥å‡ºé”™ï¼Œé‚£ä¹ˆå°è¯•å°†è¯¥æƒ…å†µå†™å…¥åˆ°æ—¥å¿—é‡Œé¢
+        // Èç¹ûĞ´Èë³ö´í£¬ÄÇÃ´³¢ÊÔ½«¸ÃÇé¿öĞ´Èëµ½ÈÕÖ¾ÀïÃæ
         if (nwritten == -1) {
             if (can_log) {
                 redisLog(REDIS_WARNING,"Error writing to the AOF file: %s",
@@ -468,7 +468,7 @@ void flushAppendOnlyFile(int force) {
                                        (long long)sdslen(server.aof_buf));
             }
 
-            // å°è¯•ç§»é™¤æ–°è¿½åŠ çš„ä¸å®Œæ•´å†…å®¹
+            // ³¢ÊÔÒÆ³ıĞÂ×·¼ÓµÄ²»ÍêÕûÄÚÈİ
             if (ftruncate(server.aof_fd, server.aof_current_size) == -1) {
                 if (can_log) {
                     redisLog(REDIS_WARNING, "Could not remove short write "
@@ -485,7 +485,7 @@ void flushAppendOnlyFile(int force) {
         }
 
         /* Handle the AOF write error. */
-        // å¤„ç†å†™å…¥ AOF æ–‡ä»¶æ—¶å‡ºç°çš„é”™è¯¯
+        // ´¦ÀíĞ´Èë AOF ÎÄ¼şÊ±³öÏÖµÄ´íÎó
         if (server.aof_fsync == AOF_FSYNC_ALWAYS) {
             /* We can't recover when the fsync policy is ALWAYS since the
              * reply for the client is already in the output buffers, and we
@@ -510,7 +510,7 @@ void flushAppendOnlyFile(int force) {
     } else {
         /* Successful write(2). If AOF was in error state, restore the
          * OK state and log the event. */
-        // å†™å…¥æˆåŠŸï¼Œæ›´æ–°æœ€åå†™å…¥çŠ¶æ€
+        // Ğ´Èë³É¹¦£¬¸üĞÂ×îºóĞ´Èë×´Ì¬
         if (server.aof_last_write_status == REDIS_ERR) {
             redisLog(REDIS_WARNING,
                 "AOF write error looks solved, Redis can write again.");
@@ -518,20 +518,20 @@ void flushAppendOnlyFile(int force) {
         }
     }
 
-    // æ›´æ–°å†™å…¥åçš„ AOF æ–‡ä»¶å¤§å°
+    // ¸üĞÂĞ´ÈëºóµÄ AOF ÎÄ¼ş´óĞ¡
     server.aof_current_size += nwritten;
 
     /* Re-use AOF buffer when it is small enough. The maximum comes from the
      * arena size of 4k minus some overhead (but is otherwise arbitrary). 
      *
-     * å¦‚æœ AOF ç¼“å­˜çš„å¤§å°è¶³å¤Ÿå°çš„è¯ï¼Œé‚£ä¹ˆé‡ç”¨è¿™ä¸ªç¼“å­˜ï¼Œ
-     * å¦åˆ™çš„è¯ï¼Œé‡Šæ”¾ AOF ç¼“å­˜ã€‚
+     * Èç¹û AOF »º´æµÄ´óĞ¡×ã¹»Ğ¡µÄ»°£¬ÄÇÃ´ÖØÓÃÕâ¸ö»º´æ£¬
+     * ·ñÔòµÄ»°£¬ÊÍ·Å AOF »º´æ¡£
      */
     if ((sdslen(server.aof_buf)+sdsavail(server.aof_buf)) < 4000) {
-        // æ¸…ç©ºç¼“å­˜ä¸­çš„å†…å®¹ï¼Œç­‰å¾…é‡ç”¨
+        // Çå¿Õ»º´æÖĞµÄÄÚÈİ£¬µÈ´ıÖØÓÃ
         sdsclear(server.aof_buf);
     } else {
-        // é‡Šæ”¾ç¼“å­˜
+        // ÊÍ·Å»º´æ
         sdsfree(server.aof_buf);
         server.aof_buf = sdsempty();
     }
@@ -539,9 +539,9 @@ void flushAppendOnlyFile(int force) {
     /* Don't fsync if no-appendfsync-on-rewrite is set to yes and there are
      * children doing I/O in the background. 
      *
-     * å¦‚æœ no-appendfsync-on-rewrite é€‰é¡¹ä¸ºå¼€å¯çŠ¶æ€ï¼Œ
-     * å¹¶ä¸”æœ‰ BGSAVE æˆ–è€… BGREWRITEAOF æ­£åœ¨è¿›è¡Œçš„è¯ï¼Œ
-     * é‚£ä¹ˆä¸æ‰§è¡Œ fsync 
+     * Èç¹û no-appendfsync-on-rewrite Ñ¡ÏîÎª¿ªÆô×´Ì¬£¬
+     * ²¢ÇÒÓĞ BGSAVE »òÕß BGREWRITEAOF ÕıÔÚ½øĞĞµÄ»°£¬
+     * ÄÇÃ´²»Ö´ĞĞ fsync 
      */
     if (server.aof_no_fsync_on_rewrite &&
         (server.aof_child_pid != -1 || server.rdb_child_pid != -1))
@@ -549,65 +549,65 @@ void flushAppendOnlyFile(int force) {
 
     /* Perform the fsync if needed. */
 
-    // æ€»æ˜¯æ‰§è¡Œ fsnyc
+    // ×ÜÊÇÖ´ĞĞ fsnyc
     if (server.aof_fsync == AOF_FSYNC_ALWAYS) {
         /* aof_fsync is defined as fdatasync() for Linux in order to avoid
          * flushing metadata. */
         aof_fsync(server.aof_fd); /* Let's try to get this data on the disk */
 
-        // æ›´æ–°æœ€åä¸€æ¬¡æ‰§è¡Œ fsnyc çš„æ—¶é—´
+        // ¸üĞÂ×îºóÒ»´ÎÖ´ĞĞ fsnyc µÄÊ±¼ä
         server.aof_last_fsync = server.unixtime;
 
-    // ç­–ç•¥ä¸ºæ¯ç§’ fsnyc ï¼Œå¹¶ä¸”è·ç¦»ä¸Šæ¬¡ fsync å·²ç»è¶…è¿‡ 1 ç§’
+    // ²ßÂÔÎªÃ¿Ãë fsnyc £¬²¢ÇÒ¾àÀëÉÏ´Î fsync ÒÑ¾­³¬¹ı 1 Ãë
     } else if ((server.aof_fsync == AOF_FSYNC_EVERYSEC &&
                 server.unixtime > server.aof_last_fsync)) {
-        // æ”¾åˆ°åå°æ‰§è¡Œ
+        // ·Åµ½ºóÌ¨Ö´ĞĞ
         if (!sync_in_progress) aof_background_fsync(server.aof_fd);
-        // æ›´æ–°æœ€åä¸€æ¬¡æ‰§è¡Œ fsync çš„æ—¶é—´
+        // ¸üĞÂ×îºóÒ»´ÎÖ´ĞĞ fsync µÄÊ±¼ä
         server.aof_last_fsync = server.unixtime;
     }
 
-    // å…¶å®ä¸Šé¢æ— è®ºæ‰§è¡Œ if éƒ¨åˆ†è¿˜æ˜¯ else éƒ¨åˆ†éƒ½è¦æ›´æ–° fsync çš„æ—¶é—´
-    // å¯ä»¥å°†ä»£ç æŒªåˆ°ä¸‹é¢æ¥
+    // ÆäÊµÉÏÃæÎŞÂÛÖ´ĞĞ if ²¿·Ö»¹ÊÇ else ²¿·Ö¶¼Òª¸üĞÂ fsync µÄÊ±¼ä
+    // ¿ÉÒÔ½«´úÂëÅ²µ½ÏÂÃæÀ´
     // server.aof_last_fsync = server.unixtime;
 }
 
 /*
- * æ ¹æ®ä¼ å…¥çš„å‘½ä»¤å’Œå‘½ä»¤å‚æ•°ï¼Œå°†å®ƒä»¬è¿˜åŸæˆåè®®æ ¼å¼ã€‚
+ * ¸ù¾İ´«ÈëµÄÃüÁîºÍÃüÁî²ÎÊı£¬½«ËüÃÇ»¹Ô­³ÉĞ­Òé¸ñÊ½¡£
  */
 sds catAppendOnlyGenericCommand(sds dst, int argc, robj **argv) {
     char buf[32];
     int len, j;
     robj *o;
 
-    // é‡å»ºå‘½ä»¤çš„ä¸ªæ•°ï¼Œæ ¼å¼ä¸º *<count>\r\n
-    // ä¾‹å¦‚ *3\r\n
+    // ÖØ½¨ÃüÁîµÄ¸öÊı£¬¸ñÊ½Îª *<count>\r\n
+    // ÀıÈç *3\r\n
     buf[0] = '*';
     len = 1+ll2string(buf+1,sizeof(buf)-1,argc);
     buf[len++] = '\r';
     buf[len++] = '\n';
     dst = sdscatlen(dst,buf,len);
 
-    // é‡å»ºå‘½ä»¤å’Œå‘½ä»¤å‚æ•°ï¼Œæ ¼å¼ä¸º $<length>\r\n<content>\r\n
-    // ä¾‹å¦‚ $3\r\nSET\r\n$3\r\nKEY\r\n$5\r\nVALUE\r\n
+    // ÖØ½¨ÃüÁîºÍÃüÁî²ÎÊı£¬¸ñÊ½Îª $<length>\r\n<content>\r\n
+    // ÀıÈç $3\r\nSET\r\n$3\r\nKEY\r\n$5\r\nVALUE\r\n
     for (j = 0; j < argc; j++) {
         o = getDecodedObject(argv[j]);
 
-        // ç»„åˆ $<length>\r\n
+        // ×éºÏ $<length>\r\n
         buf[0] = '$';
         len = 1+ll2string(buf+1,sizeof(buf)-1,sdslen(o->ptr));
         buf[len++] = '\r';
         buf[len++] = '\n';
         dst = sdscatlen(dst,buf,len);
 
-        // ç»„åˆ <content>\r\n
+        // ×éºÏ <content>\r\n
         dst = sdscatlen(dst,o->ptr,sdslen(o->ptr));
         dst = sdscatlen(dst,"\r\n",2);
 
         decrRefCount(o);
     }
 
-    // è¿”å›é‡å»ºåçš„åè®®å†…å®¹
+    // ·µ»ØÖØ½¨ºóµÄĞ­ÒéÄÚÈİ
     return dst;
 }
 
@@ -615,17 +615,17 @@ sds catAppendOnlyGenericCommand(sds dst, int argc, robj **argv) {
  * 'seconds' as time to live and 'cmd' to understand what command
  * we are translating into a PEXPIREAT.
  *
- * åˆ›å»º PEXPIREAT å‘½ä»¤çš„ sds è¡¨ç¤ºï¼Œ
- * cmd å‚æ•°ç”¨äºæŒ‡å®šè½¬æ¢çš„æºæŒ‡ä»¤ï¼Œ seconds ä¸º TTL ï¼ˆå‰©ä½™ç”Ÿå­˜æ—¶é—´ï¼‰ã€‚
+ * ´´½¨ PEXPIREAT ÃüÁîµÄ sds ±íÊ¾£¬
+ * cmd ²ÎÊıÓÃÓÚÖ¸¶¨×ª»»µÄÔ´Ö¸Áî£¬ seconds Îª TTL £¨Ê£ÓàÉú´æÊ±¼ä£©¡£
  *
  * This command is used in order to translate EXPIRE and PEXPIRE commands
  * into PEXPIREAT command so that we retain precision in the append only
  * file, and the time is always absolute and not relative.
  *
- * è¿™ä¸ªå‡½æ•°ç”¨äºå°† EXPIRE ã€ PEXPIRE å’Œ EXPIREAT è½¬æ¢ä¸º PEXPIREAT 
- * ä»è€Œåœ¨ä¿è¯ç²¾ç¡®åº¦ä¸å˜çš„æƒ…å†µä¸‹ï¼Œå°†è¿‡æœŸæ—¶é—´ä»ç›¸å¯¹å€¼è½¬æ¢ä¸ºç»å¯¹å€¼ï¼ˆä¸€ä¸ª UNIX æ—¶é—´æˆ³ï¼‰ã€‚
+ * Õâ¸öº¯ÊıÓÃÓÚ½« EXPIRE ¡¢ PEXPIRE ºÍ EXPIREAT ×ª»»Îª PEXPIREAT 
+ * ´Ó¶øÔÚ±£Ö¤¾«È·¶È²»±äµÄÇé¿öÏÂ£¬½«¹ıÆÚÊ±¼ä´ÓÏà¶ÔÖµ×ª»»Îª¾ø¶ÔÖµ£¨Ò»¸ö UNIX Ê±¼ä´Á£©¡£
  *
- * ï¼ˆè¿‡æœŸæ—¶é—´å¿…é¡»æ˜¯ç»å¯¹å€¼ï¼Œè¿™æ ·ä¸ç®¡ AOF æ–‡ä»¶ä½•æ—¶è¢«è½½å…¥ï¼Œè¯¥è¿‡æœŸçš„ key éƒ½ä¼šæ­£ç¡®åœ°è¿‡æœŸã€‚ï¼‰
+ * £¨¹ıÆÚÊ±¼ä±ØĞëÊÇ¾ø¶ÔÖµ£¬ÕâÑù²»¹Ü AOF ÎÄ¼şºÎÊ±±»ÔØÈë£¬¸Ã¹ıÆÚµÄ key ¶¼»áÕıÈ·µØ¹ıÆÚ¡££©
  */
 sds catAppendOnlyExpireAtCommand(sds buf, struct redisCommand *cmd, robj *key, robj *seconds) {
     long long when;
@@ -633,14 +633,14 @@ sds catAppendOnlyExpireAtCommand(sds buf, struct redisCommand *cmd, robj *key, r
 
     /* Make sure we can use strtol 
      *
-     * å–å‡ºè¿‡æœŸå€¼
+     * È¡³ö¹ıÆÚÖµ
      */
     seconds = getDecodedObject(seconds);
     when = strtoll(seconds->ptr,NULL,10);
 
     /* Convert argument into milliseconds for EXPIRE, SETEX, EXPIREAT 
      *
-     * å¦‚æœè¿‡æœŸå€¼çš„æ ¼å¼ä¸ºç§’ï¼Œé‚£ä¹ˆå°†å®ƒè½¬æ¢ä¸ºæ¯«ç§’
+     * Èç¹û¹ıÆÚÖµµÄ¸ñÊ½ÎªÃë£¬ÄÇÃ´½«Ëü×ª»»ÎªºÁÃë
      */
     if (cmd->proc == expireCommand || cmd->proc == setexCommand ||
         cmd->proc == expireatCommand)
@@ -650,7 +650,7 @@ sds catAppendOnlyExpireAtCommand(sds buf, struct redisCommand *cmd, robj *key, r
 
     /* Convert into absolute time for EXPIRE, PEXPIRE, SETEX, PSETEX 
      *
-     * å¦‚æœè¿‡æœŸå€¼çš„æ ¼å¼ä¸ºç›¸å¯¹å€¼ï¼Œé‚£ä¹ˆå°†å®ƒè½¬æ¢ä¸ºç»å¯¹å€¼
+     * Èç¹û¹ıÆÚÖµµÄ¸ñÊ½ÎªÏà¶ÔÖµ£¬ÄÇÃ´½«Ëü×ª»»Îª¾ø¶ÔÖµ
      */
     if (cmd->proc == expireCommand || cmd->proc == pexpireCommand ||
         cmd->proc == setexCommand || cmd->proc == psetexCommand)
@@ -660,12 +660,12 @@ sds catAppendOnlyExpireAtCommand(sds buf, struct redisCommand *cmd, robj *key, r
 
     decrRefCount(seconds);
 
-    // æ„å»º PEXPIREAT å‘½ä»¤
+    // ¹¹½¨ PEXPIREAT ÃüÁî
     argv[0] = createStringObject("PEXPIREAT",9);
     argv[1] = key;
     argv[2] = createStringObjectFromLongLong(when);
 
-    // è¿½åŠ åˆ° AOF ç¼“å­˜ä¸­
+    // ×·¼Óµ½ AOF »º´æÖĞ
     buf = catAppendOnlyGenericCommand(buf, 3, argv);
 
     decrRefCount(argv[0]);
@@ -675,8 +675,8 @@ sds catAppendOnlyExpireAtCommand(sds buf, struct redisCommand *cmd, robj *key, r
 }
 
 /*
- * å°†å‘½ä»¤è¿½åŠ åˆ° AOF æ–‡ä»¶ä¸­ï¼Œ
- * å¦‚æœ AOF é‡å†™æ­£åœ¨è¿›è¡Œï¼Œé‚£ä¹ˆä¹Ÿå°†å‘½ä»¤è¿½åŠ åˆ° AOF é‡å†™ç¼“å­˜ä¸­ã€‚
+ * ½«ÃüÁî×·¼Óµ½ AOF ÎÄ¼şÖĞ£¬
+ * Èç¹û AOF ÖØĞ´ÕıÔÚ½øĞĞ£¬ÄÇÃ´Ò²½«ÃüÁî×·¼Óµ½ AOF ÖØĞ´»º´æÖĞ¡£
  */
 void feedAppendOnlyFile(struct redisCommand *cmd, int dictid, robj **argv, int argc) {
     sds buf = sdsempty();
@@ -685,7 +685,7 @@ void feedAppendOnlyFile(struct redisCommand *cmd, int dictid, robj **argv, int a
     /* The DB this command was targeting is not the same as the last command
      * we appendend. To issue a SELECT command is needed. 
      *
-     * ä½¿ç”¨ SELECT å‘½ä»¤ï¼Œæ˜¾å¼è®¾ç½®æ•°æ®åº“ï¼Œç¡®ä¿ä¹‹åçš„å‘½ä»¤è¢«è®¾ç½®åˆ°æ­£ç¡®çš„æ•°æ®åº“
+     * Ê¹ÓÃ SELECT ÃüÁî£¬ÏÔÊ½ÉèÖÃÊı¾İ¿â£¬È·±£Ö®ºóµÄÃüÁî±»ÉèÖÃµ½ÕıÈ·µÄÊı¾İ¿â
      */
     if (dictid != server.aof_selected_db) {
         char seldb[64];
@@ -697,20 +697,20 @@ void feedAppendOnlyFile(struct redisCommand *cmd, int dictid, robj **argv, int a
         server.aof_selected_db = dictid;
     }
 
-    // EXPIRE ã€ PEXPIRE å’Œ EXPIREAT å‘½ä»¤
+    // EXPIRE ¡¢ PEXPIRE ºÍ EXPIREAT ÃüÁî
     if (cmd->proc == expireCommand || cmd->proc == pexpireCommand ||
         cmd->proc == expireatCommand) {
         /* Translate EXPIRE/PEXPIRE/EXPIREAT into PEXPIREAT 
          *
-         * å°† EXPIRE ã€ PEXPIRE å’Œ EXPIREAT éƒ½ç¿»è¯‘æˆ PEXPIREAT
+         * ½« EXPIRE ¡¢ PEXPIRE ºÍ EXPIREAT ¶¼·­Òë³É PEXPIREAT
          */
         buf = catAppendOnlyExpireAtCommand(buf,cmd,argv[1],argv[2]);
 
-    // SETEX å’Œ PSETEX å‘½ä»¤
+    // SETEX ºÍ PSETEX ÃüÁî
     } else if (cmd->proc == setexCommand || cmd->proc == psetexCommand) {
         /* Translate SETEX/PSETEX to SET and PEXPIREAT 
          *
-         * å°†ä¸¤ä¸ªå‘½ä»¤éƒ½ç¿»è¯‘æˆ SET å’Œ PEXPIREAT
+         * ½«Á½¸öÃüÁî¶¼·­Òë³É SET ºÍ PEXPIREAT
          */
 
         // SET
@@ -723,7 +723,7 @@ void feedAppendOnlyFile(struct redisCommand *cmd, int dictid, robj **argv, int a
         decrRefCount(tmpargv[0]);
         buf = catAppendOnlyExpireAtCommand(buf,cmd,argv[1],argv[2]);
 
-    // å…¶ä»–å‘½ä»¤
+    // ÆäËûÃüÁî
     } else {
         /* All the other commands don't need translation or need the
          * same translation already operated in the command vector
@@ -735,9 +735,9 @@ void feedAppendOnlyFile(struct redisCommand *cmd, int dictid, robj **argv, int a
      * of re-entering the event loop, so before the client will get a
      * positive reply about the operation performed. 
      *
-     * å°†å‘½ä»¤è¿½åŠ åˆ° AOF ç¼“å­˜ä¸­ï¼Œ
-     * åœ¨é‡æ–°è¿›å…¥äº‹ä»¶å¾ªç¯ä¹‹å‰ï¼Œè¿™äº›å‘½ä»¤ä¼šè¢«å†²æ´—åˆ°ç£ç›˜ä¸Šï¼Œ
-     * å¹¶å‘å®¢æˆ·ç«¯è¿”å›ä¸€ä¸ªå›å¤ã€‚
+     * ½«ÃüÁî×·¼Óµ½ AOF »º´æÖĞ£¬
+     * ÔÚÖØĞÂ½øÈëÊÂ¼şÑ­»·Ö®Ç°£¬ÕâĞ©ÃüÁî»á±»³åÏ´µ½´ÅÅÌÉÏ£¬
+     * ²¢Ïò¿Í»§¶Ë·µ»ØÒ»¸ö»Ø¸´¡£
      */
     if (server.aof_state == REDIS_AOF_ON)
         server.aof_buf = sdscatlen(server.aof_buf,buf,sdslen(buf));
@@ -747,14 +747,14 @@ void feedAppendOnlyFile(struct redisCommand *cmd, int dictid, robj **argv, int a
      * in a buffer, so that when the child process will do its work we
      * can append the differences to the new append only file. 
      *
-     * å¦‚æœ BGREWRITEAOF æ­£åœ¨è¿›è¡Œï¼Œ
-     * é‚£ä¹ˆæˆ‘ä»¬è¿˜éœ€è¦å°†å‘½ä»¤è¿½åŠ åˆ°é‡å†™ç¼“å­˜ä¸­ï¼Œ
-     * ä»è€Œè®°å½•å½“å‰æ­£åœ¨é‡å†™çš„ AOF æ–‡ä»¶å’Œæ•°æ®åº“å½“å‰çŠ¶æ€çš„å·®å¼‚ã€‚
+     * Èç¹û BGREWRITEAOF ÕıÔÚ½øĞĞ£¬
+     * ÄÇÃ´ÎÒÃÇ»¹ĞèÒª½«ÃüÁî×·¼Óµ½ÖØĞ´»º´æÖĞ£¬
+     * ´Ó¶ø¼ÇÂ¼µ±Ç°ÕıÔÚÖØĞ´µÄ AOF ÎÄ¼şºÍÊı¾İ¿âµ±Ç°×´Ì¬µÄ²îÒì¡£
      */
     if (server.aof_child_pid != -1)
         aofRewriteBufferAppend((unsigned char*)buf,sdslen(buf));
 
-    // é‡Šæ”¾
+    // ÊÍ·Å
     sdsfree(buf);
 }
 
@@ -765,8 +765,8 @@ void feedAppendOnlyFile(struct redisCommand *cmd, int dictid, robj **argv, int a
 /* In Redis commands are always executed in the context of a client, so in
  * order to load the append only file we need to create a fake client. 
  *
- * Redis å‘½ä»¤å¿…é¡»ç”±å®¢æˆ·ç«¯æ‰§è¡Œï¼Œ
- * æ‰€ä»¥ AOF è£…è½½ç¨‹åºéœ€è¦åˆ›å»ºä¸€ä¸ªæ— ç½‘ç»œè¿æ¥çš„å®¢æˆ·ç«¯æ¥æ‰§è¡Œ AOF æ–‡ä»¶ä¸­çš„å‘½ä»¤ã€‚
+ * Redis ÃüÁî±ØĞëÓÉ¿Í»§¶ËÖ´ĞĞ£¬
+ * ËùÒÔ AOF ×°ÔØ³ÌĞòĞèÒª´´½¨Ò»¸öÎŞÍøÂçÁ¬½ÓµÄ¿Í»§¶ËÀ´Ö´ĞĞ AOF ÎÄ¼şÖĞµÄÃüÁî¡£
  */
 struct redisClient *createFakeClient(void) {
     struct redisClient *c = zmalloc(sizeof(*c));
@@ -785,7 +785,7 @@ struct redisClient *createFakeClient(void) {
     /* We set the fake client as a slave waiting for the synchronization
      * so that Redis will not try to send replies to this client. 
      *
-     * å°†å®¢æˆ·ç«¯è®¾ç½®ä¸ºæ­£åœ¨ç­‰å¾…åŒæ­¥çš„é™„å±èŠ‚ç‚¹ï¼Œè¿™æ ·å®¢æˆ·ç«¯å°±ä¸ä¼šå‘é€å›å¤äº†ã€‚
+     * ½«¿Í»§¶ËÉèÖÃÎªÕıÔÚµÈ´ıÍ¬²½µÄ¸½Êô½Úµã£¬ÕâÑù¿Í»§¶Ë¾Í²»»á·¢ËÍ»Ø¸´ÁË¡£
      */
     c->replstate = REDIS_REPL_WAIT_BGSAVE_START;
     c->reply = listCreate();
@@ -801,20 +801,20 @@ struct redisClient *createFakeClient(void) {
 }
 
 /*
- * é‡Šæ”¾ä¼ªå®¢æˆ·ç«¯
+ * ÊÍ·ÅÎ±¿Í»§¶Ë
  */
 void freeFakeClient(struct redisClient *c) {
 
-    // é‡Šæ”¾æŸ¥è¯¢ç¼“å­˜
+    // ÊÍ·Å²éÑ¯»º´æ
     sdsfree(c->querybuf);
 
-    // é‡Šæ”¾å›å¤ç¼“å­˜
+    // ÊÍ·Å»Ø¸´»º´æ
     listRelease(c->reply);
 
-    // é‡Šæ”¾ç›‘è§†çš„é”®
+    // ÊÍ·Å¼àÊÓµÄ¼ü
     listRelease(c->watched_keys);
 
-    // é‡Šæ”¾äº‹åŠ¡çŠ¶æ€
+    // ÊÍ·ÅÊÂÎñ×´Ì¬
     freeClientMultiState(c);
 
     zfree(c);
@@ -824,34 +824,34 @@ void freeFakeClient(struct redisClient *c) {
  * error (the append only file is zero-length) REDIS_ERR is returned. On
  * fatal error an error message is logged and the program exists.
  *
- * æ‰§è¡Œ AOF æ–‡ä»¶ä¸­çš„å‘½ä»¤ã€‚
+ * Ö´ĞĞ AOF ÎÄ¼şÖĞµÄÃüÁî¡£
  *
- * å‡ºé”™æ—¶è¿”å› REDIS_OK ã€‚
+ * ³ö´íÊ±·µ»Ø REDIS_OK ¡£
  *
- * å‡ºç°éæ‰§è¡Œé”™è¯¯ï¼ˆæ¯”å¦‚æ–‡ä»¶é•¿åº¦ä¸º 0 ï¼‰æ—¶è¿”å› REDIS_ERR ã€‚
+ * ³öÏÖ·ÇÖ´ĞĞ´íÎó£¨±ÈÈçÎÄ¼ş³¤¶ÈÎª 0 £©Ê±·µ»Ø REDIS_ERR ¡£
  *
- * å‡ºç°è‡´å‘½é”™è¯¯æ—¶æ‰“å°ä¿¡æ¯åˆ°æ—¥å¿—ï¼Œå¹¶ä¸”ç¨‹åºé€€å‡ºã€‚
+ * ³öÏÖÖÂÃü´íÎóÊ±´òÓ¡ĞÅÏ¢µ½ÈÕÖ¾£¬²¢ÇÒ³ÌĞòÍË³ö¡£
  */
 int loadAppendOnlyFile(char *filename) {
 
-    // ä¸ºå®¢æˆ·ç«¯
+    // Îª¿Í»§¶Ë
     struct redisClient *fakeClient;
 
-    // æ‰“å¼€ AOF æ–‡ä»¶
+    // ´ò¿ª AOF ÎÄ¼ş
     FILE *fp = fopen(filename,"r");
 
     struct redis_stat sb;
     int old_aof_state = server.aof_state;
     long loops = 0;
 
-    // æ£€æŸ¥æ–‡ä»¶çš„æ­£ç¡®æ€§
+    // ¼ì²éÎÄ¼şµÄÕıÈ·ĞÔ
     if (fp && redis_fstat(fileno(fp),&sb) != -1 && sb.st_size == 0) {
         server.aof_current_size = 0;
         fclose(fp);
         return REDIS_ERR;
     }
 
-    // æ£€æŸ¥æ–‡ä»¶æ˜¯å¦æ­£å¸¸æ‰“å¼€
+    // ¼ì²éÎÄ¼şÊÇ·ñÕı³£´ò¿ª
     if (fp == NULL) {
         redisLog(REDIS_WARNING,"Fatal error: can't open the append log file for reading: %s",strerror(errno));
         exit(1);
@@ -860,15 +860,15 @@ int loadAppendOnlyFile(char *filename) {
     /* Temporarily disable AOF, to prevent EXEC from feeding a MULTI
      * to the same file we're about to read. 
      *
-     * æš‚æ—¶æ€§åœ°å…³é—­ AOF ï¼Œé˜²æ­¢åœ¨æ‰§è¡Œ MULTI æ—¶ï¼Œ
-     * EXEC å‘½ä»¤è¢«ä¼ æ’­åˆ°æ­£åœ¨æ‰“å¼€çš„ AOF æ–‡ä»¶ä¸­ã€‚
+     * ÔİÊ±ĞÔµØ¹Ø±Õ AOF £¬·ÀÖ¹ÔÚÖ´ĞĞ MULTI Ê±£¬
+     * EXEC ÃüÁî±»´«²¥µ½ÕıÔÚ´ò¿ªµÄ AOF ÎÄ¼şÖĞ¡£
      */
     server.aof_state = REDIS_AOF_OFF;
 
     fakeClient = createFakeClient();
 
-    // è®¾ç½®æœåŠ¡å™¨çš„çŠ¶æ€ä¸ºï¼šæ­£åœ¨è½½å…¥
-    // startLoading å®šä¹‰äº rdb.c
+    // ÉèÖÃ·şÎñÆ÷µÄ×´Ì¬Îª£ºÕıÔÚÔØÈë
+    // startLoading ¶¨ÒåÓÚ rdb.c
     startLoading(fp);
 
     while(1) {
@@ -881,48 +881,48 @@ int loadAppendOnlyFile(char *filename) {
 
         /* Serve the clients from time to time 
          *
-         * é—´éš”æ€§åœ°å¤„ç†å®¢æˆ·ç«¯å‘é€æ¥çš„è¯·æ±‚
-         * å› ä¸ºæœåŠ¡å™¨æ­£å¤„äºè½½å…¥çŠ¶æ€ï¼Œæ‰€ä»¥èƒ½æ­£å¸¸æ‰§è¡Œçš„åªæœ‰ PUBSUB ç­‰æ¨¡å—
+         * ¼ä¸ôĞÔµØ´¦Àí¿Í»§¶Ë·¢ËÍÀ´µÄÇëÇó
+         * ÒòÎª·şÎñÆ÷Õı´¦ÓÚÔØÈë×´Ì¬£¬ËùÒÔÄÜÕı³£Ö´ĞĞµÄÖ»ÓĞ PUBSUB µÈÄ£¿é
          */
         if (!(loops++ % 1000)) {
             loadingProgress(ftello(fp));
             processEventsWhileBlocked();
         }
 
-        // è¯»å…¥æ–‡ä»¶å†…å®¹åˆ°ç¼“å­˜
+        // ¶ÁÈëÎÄ¼şÄÚÈİµ½»º´æ
         if (fgets(buf,sizeof(buf),fp) == NULL) {
             if (feof(fp))
-                // æ–‡ä»¶å·²ç»è¯»å®Œï¼Œè·³å‡º
+                // ÎÄ¼şÒÑ¾­¶ÁÍê£¬Ìø³ö
                 break;
             else
                 goto readerr;
         }
 
-        // ç¡®è®¤åè®®æ ¼å¼ï¼Œæ¯”å¦‚ *3\r\n
+        // È·ÈÏĞ­Òé¸ñÊ½£¬±ÈÈç *3\r\n
         if (buf[0] != '*') goto fmterr;
         
-        // å–å‡ºå‘½ä»¤å‚æ•°ï¼Œæ¯”å¦‚ *3\r\n ä¸­çš„ 3
+        // È¡³öÃüÁî²ÎÊı£¬±ÈÈç *3\r\n ÖĞµÄ 3
         argc = atoi(buf+1);
 
-        // è‡³å°‘è¦æœ‰ä¸€ä¸ªå‚æ•°ï¼ˆè¢«è°ƒç”¨çš„å‘½ä»¤ï¼‰
+        // ÖÁÉÙÒªÓĞÒ»¸ö²ÎÊı£¨±»µ÷ÓÃµÄÃüÁî£©
         if (argc < 1) goto fmterr;
 
-        // ä»æ–‡æœ¬ä¸­åˆ›å»ºå­—ç¬¦ä¸²å¯¹è±¡ï¼šåŒ…æ‹¬å‘½ä»¤ï¼Œä»¥åŠå‘½ä»¤å‚æ•°
-        // ä¾‹å¦‚ $3\r\nSET\r\n$3\r\nKEY\r\n$5\r\nVALUE\r\n
-        // å°†åˆ›å»ºä¸‰ä¸ªåŒ…å«ä»¥ä¸‹å†…å®¹çš„å­—ç¬¦ä¸²å¯¹è±¡ï¼š
-        // SET ã€ KEY ã€ VALUE
+        // ´ÓÎÄ±¾ÖĞ´´½¨×Ö·û´®¶ÔÏó£º°üÀ¨ÃüÁî£¬ÒÔ¼°ÃüÁî²ÎÊı
+        // ÀıÈç $3\r\nSET\r\n$3\r\nKEY\r\n$5\r\nVALUE\r\n
+        // ½«´´½¨Èı¸ö°üº¬ÒÔÏÂÄÚÈİµÄ×Ö·û´®¶ÔÏó£º
+        // SET ¡¢ KEY ¡¢ VALUE
         argv = zmalloc(sizeof(robj*)*argc);
         for (j = 0; j < argc; j++) {
             if (fgets(buf,sizeof(buf),fp) == NULL) goto readerr;
 
             if (buf[0] != '$') goto fmterr;
 
-            // è¯»å–å‚æ•°å€¼çš„é•¿åº¦
+            // ¶ÁÈ¡²ÎÊıÖµµÄ³¤¶È
             len = strtol(buf+1,NULL,10);
-            // è¯»å–å‚æ•°å€¼
+            // ¶ÁÈ¡²ÎÊıÖµ
             argsds = sdsnewlen(NULL,len);
             if (len && fread(argsds,len,1,fp) == 0) goto fmterr;
-            // ä¸ºå‚æ•°åˆ›å»ºå¯¹è±¡
+            // Îª²ÎÊı´´½¨¶ÔÏó
             argv[j] = createObject(REDIS_STRING,argsds);
 
             if (fread(buf,2,1,fp) == 0) goto fmterr; /* discard CRLF */
@@ -930,7 +930,7 @@ int loadAppendOnlyFile(char *filename) {
 
         /* Command lookup 
          *
-         * æŸ¥æ‰¾å‘½ä»¤
+         * ²éÕÒÃüÁî
          */
         cmd = lookupCommand(argv[0]->ptr);
         if (!cmd) {
@@ -940,7 +940,7 @@ int loadAppendOnlyFile(char *filename) {
 
         /* Run the command in the context of a fake client 
          *
-         * è°ƒç”¨ä¼ªå®¢æˆ·ç«¯ï¼Œæ‰§è¡Œå‘½ä»¤
+         * µ÷ÓÃÎ±¿Í»§¶Ë£¬Ö´ĞĞÃüÁî
          */
         fakeClient->argc = argc;
         fakeClient->argv = argv;
@@ -954,7 +954,7 @@ int loadAppendOnlyFile(char *filename) {
         /* Clean up. Command code may have changed argv/argc so we use the
          * argv/argc of the client instead of the local variables. 
          *
-         * æ¸…ç†å‘½ä»¤å’Œå‘½ä»¤å‚æ•°å¯¹è±¡
+         * ÇåÀíÃüÁîºÍÃüÁî²ÎÊı¶ÔÏó
          */
         for (j = 0; j < fakeClient->argc; j++)
             decrRefCount(fakeClient->argv[j]);
@@ -964,39 +964,39 @@ int loadAppendOnlyFile(char *filename) {
     /* This point can only be reached when EOF is reached without errors.
      * If the client is in the middle of a MULTI/EXEC, log error and quit. 
      *
-     * å¦‚æœèƒ½æ‰§è¡Œåˆ°è¿™é‡Œï¼Œè¯´æ˜ AOF æ–‡ä»¶çš„å…¨éƒ¨å†…å®¹éƒ½å¯ä»¥æ­£ç¡®åœ°è¯»å–ï¼Œ
-     * ä½†æ˜¯ï¼Œè¿˜è¦æ£€æŸ¥ AOF æ˜¯å¦åŒ…å«æœªæ­£ç¡®ç»“æŸçš„äº‹åŠ¡
+     * Èç¹ûÄÜÖ´ĞĞµ½ÕâÀï£¬ËµÃ÷ AOF ÎÄ¼şµÄÈ«²¿ÄÚÈİ¶¼¿ÉÒÔÕıÈ·µØ¶ÁÈ¡£¬
+     * µ«ÊÇ£¬»¹Òª¼ì²é AOF ÊÇ·ñ°üº¬Î´ÕıÈ·½áÊøµÄÊÂÎñ
      */
     if (fakeClient->flags & REDIS_MULTI) goto readerr;
 
-    // å…³é—­ AOF æ–‡ä»¶
+    // ¹Ø±Õ AOF ÎÄ¼ş
     fclose(fp);
-    // é‡Šæ”¾ä¼ªå®¢æˆ·ç«¯
+    // ÊÍ·ÅÎ±¿Í»§¶Ë
     freeFakeClient(fakeClient);
-    // å¤åŸ AOF çŠ¶æ€
+    // ¸´Ô­ AOF ×´Ì¬
     server.aof_state = old_aof_state;
-    // åœæ­¢è½½å…¥
+    // Í£Ö¹ÔØÈë
     stopLoading();
-    // æ›´æ–°æœåŠ¡å™¨çŠ¶æ€ä¸­ï¼Œ AOF æ–‡ä»¶çš„å½“å‰å¤§å°
+    // ¸üĞÂ·şÎñÆ÷×´Ì¬ÖĞ£¬ AOF ÎÄ¼şµÄµ±Ç°´óĞ¡
     aofUpdateCurrentSize();
-    // è®°å½•å‰ä¸€æ¬¡é‡å†™æ—¶çš„å¤§å°
+    // ¼ÇÂ¼Ç°Ò»´ÎÖØĞ´Ê±µÄ´óĞ¡
     server.aof_rewrite_base_size = server.aof_current_size;
     
     return REDIS_OK;
 
-// è¯»å…¥é”™è¯¯
+// ¶ÁÈë´íÎó
 readerr:
-    // éé¢„æœŸçš„æœ«å°¾ï¼Œå¯èƒ½æ˜¯ AOF æ–‡ä»¶åœ¨å†™å…¥çš„ä¸­é€”é­é‡äº†åœæœº
+    // ·ÇÔ¤ÆÚµÄÄ©Î²£¬¿ÉÄÜÊÇ AOF ÎÄ¼şÔÚĞ´ÈëµÄÖĞÍ¾ÔâÓöÁËÍ£»ú
     if (feof(fp)) {
         redisLog(REDIS_WARNING,"Unexpected end of file reading the append only file");
     
-    // æ–‡ä»¶å†…å®¹å‡ºé”™
+    // ÎÄ¼şÄÚÈİ³ö´í
     } else {
         redisLog(REDIS_WARNING,"Unrecoverable error reading the append only file: %s", strerror(errno));
     }
     exit(1);
 
-// å†…å®¹æ ¼å¼é”™è¯¯
+// ÄÚÈİ¸ñÊ½´íÎó
 fmterr:
     redisLog(REDIS_WARNING,"Bad file format reading the append only file: make a backup of your AOF file, then use ./redis-check-aof --fix <filename>");
     exit(1);
@@ -1009,7 +1009,7 @@ fmterr:
 /* Delegate writing an object to writing a bulk string or bulk long long.
  * This is not placed in rio.c since that adds the redis.h dependency. 
  *
- * å°† obj æ‰€æŒ‡å‘çš„æ•´æ•°å¯¹è±¡æˆ–å­—ç¬¦ä¸²å¯¹è±¡çš„å€¼å†™å…¥åˆ° r å½“ä¸­ã€‚
+ * ½« obj ËùÖ¸ÏòµÄÕûÊı¶ÔÏó»ò×Ö·û´®¶ÔÏóµÄÖµĞ´Èëµ½ r µ±ÖĞ¡£
  */
 int rioWriteBulkObject(rio *r, robj *obj) {
     /* Avoid using getDecodedObject to help copy-on-write (we are often
@@ -1026,11 +1026,11 @@ int rioWriteBulkObject(rio *r, robj *obj) {
 /* Emit the commands needed to rebuild a list object.
  * The function returns 0 on error, 1 on success. 
  *
- * å°†é‡å»ºåˆ—è¡¨å¯¹è±¡æ‰€éœ€çš„å‘½ä»¤å†™å…¥åˆ° r ã€‚
+ * ½«ÖØ½¨ÁĞ±í¶ÔÏóËùĞèµÄÃüÁîĞ´Èëµ½ r ¡£
  *
- * å‡ºé”™è¿”å› 0 ï¼ŒæˆåŠŸè¿”å› 1 ã€‚
+ * ³ö´í·µ»Ø 0 £¬³É¹¦·µ»Ø 1 ¡£
  *
- * å‘½ä»¤çš„å½¢å¼å¦‚ä¸‹ï¼š  RPUSH item1 item2 ... itemN
+ * ÃüÁîµÄĞÎÊ½ÈçÏÂ£º  RPUSH item1 item2 ... itemN
  */
 int rewriteListObject(rio *r, robj *key, robj *o) {
     long long count = 0, items = listTypeLength(o);
@@ -1042,9 +1042,9 @@ int rewriteListObject(rio *r, robj *key, robj *o) {
         unsigned int vlen;
         long long vlong;
 
-        // å…ˆæ„å»ºä¸€ä¸ª RPUSH key 
-        // ç„¶åä» ZIPLIST ä¸­å–å‡ºæœ€å¤š REDIS_AOF_REWRITE_ITEMS_PER_CMD ä¸ªå…ƒç´ 
-        // ä¹‹åé‡å¤ç¬¬ä¸€æ­¥ï¼Œç›´åˆ° ZIPLIST ä¸ºç©º
+        // ÏÈ¹¹½¨Ò»¸ö RPUSH key 
+        // È»ºó´Ó ZIPLIST ÖĞÈ¡³ö×î¶à REDIS_AOF_REWRITE_ITEMS_PER_CMD ¸öÔªËØ
+        // Ö®ºóÖØ¸´µÚÒ»²½£¬Ö±µ½ ZIPLIST Îª¿Õ
         while(ziplistGet(p,&vstr,&vlen,&vlong)) {
             if (count == 0) {
                 int cmd_items = (items > REDIS_AOF_REWRITE_ITEMS_PER_CMD) ?
@@ -1054,13 +1054,13 @@ int rewriteListObject(rio *r, robj *key, robj *o) {
                 if (rioWriteBulkString(r,"RPUSH",5) == 0) return 0;
                 if (rioWriteBulkObject(r,key) == 0) return 0;
             }
-            // å–å‡ºå€¼
+            // È¡³öÖµ
             if (vstr) {
                 if (rioWriteBulkString(r,(char*)vstr,vlen) == 0) return 0;
             } else {
                 if (rioWriteBulkLongLong(r,vlong) == 0) return 0;
             }
-            // ç§»åŠ¨æŒ‡é’ˆï¼Œå¹¶è®¡ç®—è¢«å–å‡ºå…ƒç´ çš„æ•°é‡
+            // ÒÆ¶¯Ö¸Õë£¬²¢¼ÆËã±»È¡³öÔªËØµÄÊıÁ¿
             p = ziplistNext(zl,p);
             if (++count == REDIS_AOF_REWRITE_ITEMS_PER_CMD) count = 0;
             items--;
@@ -1070,9 +1070,9 @@ int rewriteListObject(rio *r, robj *key, robj *o) {
         listNode *ln;
         listIter li;
 
-        // å…ˆæ„å»ºä¸€ä¸ª RPUSH key 
-        // ç„¶åä»åŒç«¯é“¾è¡¨ä¸­å–å‡ºæœ€å¤š REDIS_AOF_REWRITE_ITEMS_PER_CMD ä¸ªå…ƒç´ 
-        // ä¹‹åé‡å¤ç¬¬ä¸€æ­¥ï¼Œç›´åˆ°é“¾è¡¨ä¸ºç©º
+        // ÏÈ¹¹½¨Ò»¸ö RPUSH key 
+        // È»ºó´ÓË«¶ËÁ´±íÖĞÈ¡³ö×î¶à REDIS_AOF_REWRITE_ITEMS_PER_CMD ¸öÔªËØ
+        // Ö®ºóÖØ¸´µÚÒ»²½£¬Ö±µ½Á´±íÎª¿Õ
         listRewind(list,&li);
         while((ln = listNext(&li))) {
             robj *eleobj = listNodeValue(ln);
@@ -1086,10 +1086,10 @@ int rewriteListObject(rio *r, robj *key, robj *o) {
                 if (rioWriteBulkObject(r,key) == 0) return 0;
             }
 
-            // å–å‡ºå€¼
+            // È¡³öÖµ
             if (rioWriteBulkObject(r,eleobj) == 0) return 0;
 
-            // å…ƒç´ è®¡æ•°
+            // ÔªËØ¼ÆÊı
             if (++count == REDIS_AOF_REWRITE_ITEMS_PER_CMD) count = 0;
 
             items--;
@@ -1103,11 +1103,11 @@ int rewriteListObject(rio *r, robj *key, robj *o) {
 /* Emit the commands needed to rebuild a set object.
  * The function returns 0 on error, 1 on success. 
  *
- * å°†é‡å»ºé›†åˆå¯¹è±¡æ‰€éœ€çš„å‘½ä»¤å†™å…¥åˆ° r ã€‚
+ * ½«ÖØ½¨¼¯ºÏ¶ÔÏóËùĞèµÄÃüÁîĞ´Èëµ½ r ¡£
  *
- * å‡ºé”™è¿”å› 0 ï¼ŒæˆåŠŸè¿”å› 1 ã€‚
+ * ³ö´í·µ»Ø 0 £¬³É¹¦·µ»Ø 1 ¡£
  *
- * å‘½ä»¤çš„å½¢å¼å¦‚ä¸‹ï¼š  SADD item1 item2 ... itemN
+ * ÃüÁîµÄĞÎÊ½ÈçÏÂ£º  SADD item1 item2 ... itemN
  */
 int rewriteSetObject(rio *r, robj *key, robj *o) {
     long long count = 0, items = setTypeSize(o);
@@ -1157,11 +1157,11 @@ int rewriteSetObject(rio *r, robj *key, robj *o) {
 /* Emit the commands needed to rebuild a sorted set object.
  * The function returns 0 on error, 1 on success. 
  *
- * å°†é‡å»ºæœ‰åºé›†åˆå¯¹è±¡æ‰€éœ€çš„å‘½ä»¤å†™å…¥åˆ° r ã€‚
+ * ½«ÖØ½¨ÓĞĞò¼¯ºÏ¶ÔÏóËùĞèµÄÃüÁîĞ´Èëµ½ r ¡£
  *
- * å‡ºé”™è¿”å› 0 ï¼ŒæˆåŠŸè¿”å› 1 ã€‚
+ * ³ö´í·µ»Ø 0 £¬³É¹¦·µ»Ø 1 ¡£
  *
- * å‘½ä»¤çš„å½¢å¼å¦‚ä¸‹ï¼š  ZADD score1 member1 score2 member2 ... scoreN memberN
+ * ÃüÁîµÄĞÎÊ½ÈçÏÂ£º  ZADD score1 member1 score2 member2 ... scoreN memberN
  */
 int rewriteSortedSetObject(rio *r, robj *key, robj *o) {
     long long count = 0, items = zsetLength(o);
@@ -1232,20 +1232,20 @@ int rewriteSortedSetObject(rio *r, robj *key, robj *o) {
 
 /* Write either the key or the value of the currently selected item of a hash.
  *
- * é€‰æ‹©å†™å…¥å“ˆå¸Œçš„ key æˆ–è€… value åˆ° r ä¸­ã€‚
+ * Ñ¡ÔñĞ´Èë¹şÏ£µÄ key »òÕß value µ½ r ÖĞ¡£
  *
  * The 'hi' argument passes a valid Redis hash iterator.
  *
- * hi ä¸º Redis å“ˆå¸Œè¿­ä»£å™¨
+ * hi Îª Redis ¹şÏ£µü´úÆ÷
  *
  * The 'what' filed specifies if to write a key or a value and can be
  * either REDIS_HASH_KEY or REDIS_HASH_VALUE.
  *
- * what å†³å®šäº†è¦å†™å…¥çš„éƒ¨åˆ†ï¼Œå¯ä»¥æ˜¯ REDIS_HASH_KEY æˆ– REDIS_HASH_VALUE
+ * what ¾ö¶¨ÁËÒªĞ´ÈëµÄ²¿·Ö£¬¿ÉÒÔÊÇ REDIS_HASH_KEY »ò REDIS_HASH_VALUE
  *
  * The function returns 0 on error, non-zero on success. 
  *
- * å‡ºé”™è¿”å› 0 ï¼ŒæˆåŠŸè¿”å›é 0 ã€‚
+ * ³ö´í·µ»Ø 0 £¬³É¹¦·µ»Ø·Ç 0 ¡£
  */
 static int rioWriteHashIteratorCursor(rio *r, hashTypeIterator *hi, int what) {
 
@@ -1275,11 +1275,11 @@ static int rioWriteHashIteratorCursor(rio *r, hashTypeIterator *hi, int what) {
 /* Emit the commands needed to rebuild a hash object.
  * The function returns 0 on error, 1 on success. 
  *
- * å°†é‡å»ºå“ˆå¸Œå¯¹è±¡æ‰€éœ€çš„å‘½ä»¤å†™å…¥åˆ° r ã€‚
+ * ½«ÖØ½¨¹şÏ£¶ÔÏóËùĞèµÄÃüÁîĞ´Èëµ½ r ¡£
  *
- * å‡ºé”™è¿”å› 0 ï¼ŒæˆåŠŸè¿”å› 1 ã€‚
+ * ³ö´í·µ»Ø 0 £¬³É¹¦·µ»Ø 1 ¡£
  *
- * å‘½ä»¤çš„å½¢å¼å¦‚ä¸‹ï¼šHMSET field1 value1 field2 value2 ... fieldN valueN
+ * ÃüÁîµÄĞÎÊ½ÈçÏÂ£ºHMSET field1 value1 field2 value2 ... fieldN valueN
  */
 int rewriteHashObject(rio *r, robj *key, robj *o) {
     hashTypeIterator *hi;
@@ -1310,20 +1310,20 @@ int rewriteHashObject(rio *r, robj *key, robj *o) {
 /* Write a sequence of commands able to fully rebuild the dataset into
  * "filename". Used both by REWRITEAOF and BGREWRITEAOF.
  *
- * å°†ä¸€é›†è¶³ä»¥è¿˜åŸå½“å‰æ•°æ®é›†çš„å‘½ä»¤å†™å…¥åˆ° filename æŒ‡å®šçš„æ–‡ä»¶ä¸­ã€‚
+ * ½«Ò»¼¯×ãÒÔ»¹Ô­µ±Ç°Êı¾İ¼¯µÄÃüÁîĞ´Èëµ½ filename Ö¸¶¨µÄÎÄ¼şÖĞ¡£
  *
- * è¿™ä¸ªå‡½æ•°è¢« REWRITEAOF å’Œ BGREWRITEAOF ä¸¤ä¸ªå‘½ä»¤è°ƒç”¨ã€‚
- * ï¼ˆREWRITEAOF ä¼¼ä¹å·²ç»æ˜¯ä¸€ä¸ªåºŸå¼ƒçš„å‘½ä»¤ï¼‰
+ * Õâ¸öº¯Êı±» REWRITEAOF ºÍ BGREWRITEAOF Á½¸öÃüÁîµ÷ÓÃ¡£
+ * £¨REWRITEAOF ËÆºõÒÑ¾­ÊÇÒ»¸ö·ÏÆúµÄÃüÁî£©
  *
  * In order to minimize the number of commands needed in the rewritten
  * log Redis uses variadic commands when possible, such as RPUSH, SADD
  * and ZADD. However at max REDIS_AOF_REWRITE_ITEMS_PER_CMD items per time
  * are inserted using a single command. 
  *
- * ä¸ºäº†æœ€å°åŒ–é‡å»ºæ•°æ®é›†æ‰€éœ€æ‰§è¡Œçš„å‘½ä»¤æ•°é‡ï¼Œ
- * Redis ä¼šå°½å¯èƒ½åœ°ä½¿ç”¨æ¥å—å¯å˜å‚æ•°æ•°é‡çš„å‘½ä»¤ï¼Œæ¯”å¦‚ RPUSH ã€SADD å’Œ ZADD ç­‰ã€‚
+ * ÎªÁË×îĞ¡»¯ÖØ½¨Êı¾İ¼¯ËùĞèÖ´ĞĞµÄÃüÁîÊıÁ¿£¬
+ * Redis »á¾¡¿ÉÄÜµØÊ¹ÓÃ½ÓÊÜ¿É±ä²ÎÊıÊıÁ¿µÄÃüÁî£¬±ÈÈç RPUSH ¡¢SADD ºÍ ZADD µÈ¡£
  *
- * ä¸è¿‡å•ä¸ªå‘½ä»¤æ¯æ¬¡å¤„ç†çš„å…ƒç´ æ•°é‡ä¸èƒ½è¶…è¿‡ REDIS_AOF_REWRITE_ITEMS_PER_CMD ã€‚
+ * ²»¹ıµ¥¸öÃüÁîÃ¿´Î´¦ÀíµÄÔªËØÊıÁ¿²»ÄÜ³¬¹ı REDIS_AOF_REWRITE_ITEMS_PER_CMD ¡£
  */
 int rewriteAppendOnlyFile(char *filename) {
     dictIterator *di = NULL;
@@ -1337,9 +1337,9 @@ int rewriteAppendOnlyFile(char *filename) {
     /* Note that we have to use a different temp name here compared to the
      * one used by rewriteAppendOnlyFileBackground() function. 
      *
-     * åˆ›å»ºä¸´æ—¶æ–‡ä»¶
+     * ´´½¨ÁÙÊ±ÎÄ¼ş
      *
-     * æ³¨æ„è¿™é‡Œåˆ›å»ºçš„æ–‡ä»¶åå’Œ rewriteAppendOnlyFileBackground() åˆ›å»ºçš„æ–‡ä»¶åç¨æœ‰ä¸åŒ
+     * ×¢ÒâÕâÀï´´½¨µÄÎÄ¼şÃûºÍ rewriteAppendOnlyFileBackground() ´´½¨µÄÎÄ¼şÃûÉÔÓĞ²»Í¬
      */
     snprintf(tmpfile,256,"temp-rewriteaof-%d.aof", (int) getpid());
     fp = fopen(tmpfile,"w");
@@ -1348,27 +1348,27 @@ int rewriteAppendOnlyFile(char *filename) {
         return REDIS_ERR;
     }
 
-    // åˆå§‹åŒ–æ–‡ä»¶ io
+    // ³õÊ¼»¯ÎÄ¼ş io
     rioInitWithFile(&aof,fp);
 
-    // è®¾ç½®æ¯å†™å…¥ REDIS_AOF_AUTOSYNC_BYTES å­—èŠ‚
-    // å°±æ‰§è¡Œä¸€æ¬¡ FSYNC 
-    // é˜²æ­¢ç¼“å­˜ä¸­ç§¯ç´¯å¤ªå¤šå‘½ä»¤å†…å®¹ï¼Œé€ æˆ I/O é˜»å¡æ—¶é—´è¿‡é•¿
+    // ÉèÖÃÃ¿Ğ´Èë REDIS_AOF_AUTOSYNC_BYTES ×Ö½Ú
+    // ¾ÍÖ´ĞĞÒ»´Î FSYNC 
+    // ·ÀÖ¹»º´æÖĞ»ıÀÛÌ«¶àÃüÁîÄÚÈİ£¬Ôì³É I/O ×èÈûÊ±¼ä¹ı³¤
     if (server.aof_rewrite_incremental_fsync)
         rioSetAutoSync(&aof,REDIS_AOF_AUTOSYNC_BYTES);
 
-    // éå†æ‰€æœ‰æ•°æ®åº“
+    // ±éÀúËùÓĞÊı¾İ¿â
     for (j = 0; j < server.dbnum; j++) {
 
         char selectcmd[] = "*2\r\n$6\r\nSELECT\r\n";
 
         redisDb *db = server.db+j;
 
-        // æŒ‡å‘é”®ç©ºé—´
+        // Ö¸Ïò¼ü¿Õ¼ä
         dict *d = db->dict;
         if (dictSize(d) == 0) continue;
 
-        // åˆ›å»ºé”®ç©ºé—´è¿­ä»£å™¨
+        // ´´½¨¼ü¿Õ¼äµü´úÆ÷
         di = dictGetSafeIterator(d);
         if (!di) {
             fclose(fp);
@@ -1377,39 +1377,39 @@ int rewriteAppendOnlyFile(char *filename) {
 
         /* SELECT the new DB 
          *
-         * é¦–å…ˆå†™å…¥ SELECT å‘½ä»¤ï¼Œç¡®ä¿ä¹‹åçš„æ•°æ®ä¼šè¢«æ’å…¥åˆ°æ­£ç¡®çš„æ•°æ®åº“ä¸Š
+         * Ê×ÏÈĞ´Èë SELECT ÃüÁî£¬È·±£Ö®ºóµÄÊı¾İ»á±»²åÈëµ½ÕıÈ·µÄÊı¾İ¿âÉÏ
          */
         if (rioWrite(&aof,selectcmd,sizeof(selectcmd)-1) == 0) goto werr;
         if (rioWriteBulkLongLong(&aof,j) == 0) goto werr;
 
         /* Iterate this DB writing every entry 
          *
-         * éå†æ•°æ®åº“æ‰€æœ‰é”®ï¼Œå¹¶é€šè¿‡å‘½ä»¤å°†å®ƒä»¬çš„å½“å‰çŠ¶æ€ï¼ˆå€¼ï¼‰è®°å½•åˆ°æ–° AOF æ–‡ä»¶ä¸­
+         * ±éÀúÊı¾İ¿âËùÓĞ¼ü£¬²¢Í¨¹ıÃüÁî½«ËüÃÇµÄµ±Ç°×´Ì¬£¨Öµ£©¼ÇÂ¼µ½ĞÂ AOF ÎÄ¼şÖĞ
          */
         while((de = dictNext(di)) != NULL) {
             sds keystr;
             robj key, *o;
             long long expiretime;
 
-            // å–å‡ºé”®
+            // È¡³ö¼ü
             keystr = dictGetKey(de);
 
-            // å–å‡ºå€¼
+            // È¡³öÖµ
             o = dictGetVal(de);
             initStaticStringObject(key,keystr);
 
-            // å–å‡ºè¿‡æœŸæ—¶é—´
+            // È¡³ö¹ıÆÚÊ±¼ä
             expiretime = getExpire(db,&key);
 
             /* If this key is already expired skip it 
              *
-             * å¦‚æœé”®å·²ç»è¿‡æœŸï¼Œé‚£ä¹ˆè·³è¿‡å®ƒï¼Œä¸ä¿å­˜
+             * Èç¹û¼üÒÑ¾­¹ıÆÚ£¬ÄÇÃ´Ìø¹ıËü£¬²»±£´æ
              */
             if (expiretime != -1 && expiretime < now) continue;
 
             /* Save the key and associated value 
              *
-             * æ ¹æ®å€¼çš„ç±»å‹ï¼Œé€‰æ‹©é€‚å½“çš„å‘½ä»¤æ¥ä¿å­˜å€¼
+             * ¸ù¾İÖµµÄÀàĞÍ£¬Ñ¡ÔñÊÊµ±µÄÃüÁîÀ´±£´æÖµ
              */
             if (o->type == REDIS_STRING) {
                 /* Emit a SET command */
@@ -1432,24 +1432,24 @@ int rewriteAppendOnlyFile(char *filename) {
 
             /* Save the expire time 
              *
-             * ä¿å­˜é”®çš„è¿‡æœŸæ—¶é—´
+             * ±£´æ¼üµÄ¹ıÆÚÊ±¼ä
              */
             if (expiretime != -1) {
                 char cmd[]="*3\r\n$9\r\nPEXPIREAT\r\n";
 
-                // å†™å…¥ PEXPIREAT expiretime å‘½ä»¤
+                // Ğ´Èë PEXPIREAT expiretime ÃüÁî
                 if (rioWrite(&aof,cmd,sizeof(cmd)-1) == 0) goto werr;
                 if (rioWriteBulkObject(&aof,&key) == 0) goto werr;
                 if (rioWriteBulkLongLong(&aof,expiretime) == 0) goto werr;
             }
         }
 
-        // é‡Šæ”¾è¿­ä»£å™¨
+        // ÊÍ·Åµü´úÆ÷
         dictReleaseIterator(di);
     }
 
     /* Make sure data will not remain on the OS's output buffers */
-    // å†²æ´—å¹¶å…³é—­æ–° AOF æ–‡ä»¶
+    // ³åÏ´²¢¹Ø±ÕĞÂ AOF ÎÄ¼ş
     if (fflush(fp) == EOF) goto werr;
     if (aof_fsync(fileno(fp)) == -1) goto werr;
     if (fclose(fp) == EOF) goto werr;
@@ -1457,7 +1457,7 @@ int rewriteAppendOnlyFile(char *filename) {
     /* Use RENAME to make sure the DB file is changed atomically only
      * if the generate DB file is ok. 
      *
-     * åŸå­åœ°æ”¹åï¼Œç”¨é‡å†™åçš„æ–° AOF æ–‡ä»¶è¦†ç›–æ—§ AOF æ–‡ä»¶
+     * Ô­×ÓµØ¸ÄÃû£¬ÓÃÖØĞ´ºóµÄĞÂ AOF ÎÄ¼ş¸²¸Ç¾É AOF ÎÄ¼ş
      */
     if (rename(tmpfile,filename) == -1) {
         redisLog(REDIS_WARNING,"Error moving temp append only file on the final destination: %s", strerror(errno));
@@ -1479,42 +1479,42 @@ werr:
 
 /* This is how rewriting of the append only file in background works:
  * 
- * ä»¥ä¸‹æ˜¯åå°é‡å†™ AOF æ–‡ä»¶ï¼ˆBGREWRITEAOFï¼‰çš„å·¥ä½œæ­¥éª¤ï¼š
+ * ÒÔÏÂÊÇºóÌ¨ÖØĞ´ AOF ÎÄ¼ş£¨BGREWRITEAOF£©µÄ¹¤×÷²½Öè£º
  *
  * 1) The user calls BGREWRITEAOF
- *    ç”¨æˆ·è°ƒç”¨ BGREWRITEAOF
+ *    ÓÃ»§µ÷ÓÃ BGREWRITEAOF
  *
  * 2) Redis calls this function, that forks():
- *    Redis è°ƒç”¨è¿™ä¸ªå‡½æ•°ï¼Œå®ƒæ‰§è¡Œ fork() ï¼š
+ *    Redis µ÷ÓÃÕâ¸öº¯Êı£¬ËüÖ´ĞĞ fork() £º
  *
  *    2a) the child rewrite the append only file in a temp file.
- *        å­è¿›ç¨‹åœ¨ä¸´æ—¶æ–‡ä»¶ä¸­å¯¹ AOF æ–‡ä»¶è¿›è¡Œé‡å†™
+ *        ×Ó½ø³ÌÔÚÁÙÊ±ÎÄ¼şÖĞ¶Ô AOF ÎÄ¼ş½øĞĞÖØĞ´
  *
  *    2b) the parent accumulates differences in server.aof_rewrite_buf.
- *        çˆ¶è¿›ç¨‹å°†æ–°è¾“å…¥çš„å†™å‘½ä»¤è¿½åŠ åˆ° server.aof_rewrite_buf ä¸­
+ *        ¸¸½ø³Ì½«ĞÂÊäÈëµÄĞ´ÃüÁî×·¼Óµ½ server.aof_rewrite_buf ÖĞ
  *
  * 3) When the child finished '2a' exists.
- *    å½“æ­¥éª¤ 2a æ‰§è¡Œå®Œä¹‹åï¼Œå­è¿›ç¨‹ç»“æŸ
+ *    µ±²½Öè 2a Ö´ĞĞÍêÖ®ºó£¬×Ó½ø³Ì½áÊø
  *
  * 4) The parent will trap the exit code, if it's OK, will append the
  *    data accumulated into server.aof_rewrite_buf into the temp file, and
  *    finally will rename(2) the temp file in the actual file name.
  *    The the new file is reopened as the new append only file. Profit!
  *
- *    çˆ¶è¿›ç¨‹ä¼šæ•æ‰å­è¿›ç¨‹çš„é€€å‡ºä¿¡å·ï¼Œ
- *    å¦‚æœå­è¿›ç¨‹çš„é€€å‡ºçŠ¶æ€æ˜¯ OK çš„è¯ï¼Œ
- *    é‚£ä¹ˆçˆ¶è¿›ç¨‹å°†æ–°è¾“å…¥å‘½ä»¤çš„ç¼“å­˜è¿½åŠ åˆ°ä¸´æ—¶æ–‡ä»¶ï¼Œ
- *    ç„¶åä½¿ç”¨ rename(2) å¯¹ä¸´æ—¶æ–‡ä»¶æ”¹åï¼Œç”¨å®ƒä»£æ›¿æ—§çš„ AOF æ–‡ä»¶ï¼Œ
- *    è‡³æ­¤ï¼Œåå° AOF é‡å†™å®Œæˆã€‚
+ *    ¸¸½ø³Ì»á²¶×½×Ó½ø³ÌµÄÍË³öĞÅºÅ£¬
+ *    Èç¹û×Ó½ø³ÌµÄÍË³ö×´Ì¬ÊÇ OK µÄ»°£¬
+ *    ÄÇÃ´¸¸½ø³Ì½«ĞÂÊäÈëÃüÁîµÄ»º´æ×·¼Óµ½ÁÙÊ±ÎÄ¼ş£¬
+ *    È»ºóÊ¹ÓÃ rename(2) ¶ÔÁÙÊ±ÎÄ¼ş¸ÄÃû£¬ÓÃËü´úÌæ¾ÉµÄ AOF ÎÄ¼ş£¬
+ *    ÖÁ´Ë£¬ºóÌ¨ AOF ÖØĞ´Íê³É¡£
  */
 int rewriteAppendOnlyFileBackground(void) {
     pid_t childpid;
     long long start;
 
-    // å·²ç»æœ‰è¿›ç¨‹åœ¨è¿›è¡Œ AOF é‡å†™äº†
+    // ÒÑ¾­ÓĞ½ø³ÌÔÚ½øĞĞ AOF ÖØĞ´ÁË
     if (server.aof_child_pid != -1) return REDIS_ERR;
 
-    // è®°å½• fork å¼€å§‹å‰çš„æ—¶é—´ï¼Œè®¡ç®— fork è€—æ—¶ç”¨
+    // ¼ÇÂ¼ fork ¿ªÊ¼Ç°µÄÊ±¼ä£¬¼ÆËã fork ºÄÊ±ÓÃ
     start = ustime();
 
     if ((childpid = fork()) == 0) {
@@ -1522,13 +1522,13 @@ int rewriteAppendOnlyFileBackground(void) {
 
         /* Child */
 
-        // å…³é—­ç½‘ç»œè¿æ¥ fd
+        // ¹Ø±ÕÍøÂçÁ¬½Ó fd
         closeListeningSockets(0);
 
-        // ä¸ºè¿›ç¨‹è®¾ç½®åå­—ï¼Œæ–¹ä¾¿è®°è®¤
+        // Îª½ø³ÌÉèÖÃÃû×Ö£¬·½±ã¼ÇÈÏ
         redisSetProcTitle("redis-aof-rewrite");
 
-        // åˆ›å»ºä¸´æ—¶æ–‡ä»¶ï¼Œå¹¶è¿›è¡Œ AOF é‡å†™
+        // ´´½¨ÁÙÊ±ÎÄ¼ş£¬²¢½øĞĞ AOF ÖØĞ´
         snprintf(tmpfile,256,"temp-rewriteaof-bg-%d.aof", (int) getpid());
         if (rewriteAppendOnlyFile(tmpfile) == REDIS_OK) {
             size_t private_dirty = zmalloc_get_private_dirty();
@@ -1538,15 +1538,15 @@ int rewriteAppendOnlyFileBackground(void) {
                     "AOF rewrite: %zu MB of memory used by copy-on-write",
                     private_dirty/(1024*1024));
             }
-            // å‘é€é‡å†™æˆåŠŸä¿¡å·
+            // ·¢ËÍÖØĞ´³É¹¦ĞÅºÅ
             exitFromChild(0);
         } else {
-            // å‘é€é‡å†™å¤±è´¥ä¿¡å·
+            // ·¢ËÍÖØĞ´Ê§°ÜĞÅºÅ
             exitFromChild(1);
         }
     } else {
         /* Parent */
-        // è®°å½•æ‰§è¡Œ fork æ‰€æ¶ˆè€—çš„æ—¶é—´
+        // ¼ÇÂ¼Ö´ĞĞ fork ËùÏûºÄµÄÊ±¼ä
         server.stat_fork_time = ustime()-start;
 
         if (childpid == -1) {
@@ -1559,12 +1559,12 @@ int rewriteAppendOnlyFileBackground(void) {
         redisLog(REDIS_NOTICE,
             "Background append only file rewriting started by pid %d",childpid);
 
-        // è®°å½• AOF é‡å†™çš„ä¿¡æ¯
+        // ¼ÇÂ¼ AOF ÖØĞ´µÄĞÅÏ¢
         server.aof_rewrite_scheduled = 0;
         server.aof_rewrite_time_start = time(NULL);
         server.aof_child_pid = childpid;
 
-        // å…³é—­å­—å…¸è‡ªåŠ¨ rehash
+        // ¹Ø±Õ×Öµä×Ô¶¯ rehash
         updateDictResizePolicy();
 
         /* We set appendseldb to -1 in order to force the next call to the
@@ -1572,9 +1572,9 @@ int rewriteAppendOnlyFileBackground(void) {
          * accumulated by the parent into server.aof_rewrite_buf will start
          * with a SELECT statement and it will be safe to merge. 
          *
-         * å°† aof_selected_db è®¾ä¸º -1 ï¼Œ
-         * å¼ºåˆ¶è®© feedAppendOnlyFile() ä¸‹æ¬¡æ‰§è¡Œæ—¶å¼•å‘ä¸€ä¸ª SELECT å‘½ä»¤ï¼Œ
-         * ä»è€Œç¡®ä¿ä¹‹åæ–°æ·»åŠ çš„å‘½ä»¤ä¼šè®¾ç½®åˆ°æ­£ç¡®çš„æ•°æ®åº“ä¸­
+         * ½« aof_selected_db ÉèÎª -1 £¬
+         * Ç¿ÖÆÈÃ feedAppendOnlyFile() ÏÂ´ÎÖ´ĞĞÊ±Òı·¢Ò»¸ö SELECT ÃüÁî£¬
+         * ´Ó¶øÈ·±£Ö®ºóĞÂÌí¼ÓµÄÃüÁî»áÉèÖÃµ½ÕıÈ·µÄÊı¾İ¿âÖĞ
          */
         server.aof_selected_db = -1;
         replicationScriptCacheFlush();
@@ -1585,17 +1585,17 @@ int rewriteAppendOnlyFileBackground(void) {
 
 void bgrewriteaofCommand(redisClient *c) {
 
-    // ä¸èƒ½é‡å¤è¿è¡Œ BGREWRITEAOF
+    // ²»ÄÜÖØ¸´ÔËĞĞ BGREWRITEAOF
     if (server.aof_child_pid != -1) {
         addReplyError(c,"Background append only file rewriting already in progress");
 
-    // å¦‚æœæ­£åœ¨æ‰§è¡Œ BGSAVE ï¼Œé‚£ä¹ˆé¢„å®š BGREWRITEAOF
-    // ç­‰ BGSAVE å®Œæˆä¹‹åï¼Œ BGREWRITEAOF å°±ä¼šå¼€å§‹æ‰§è¡Œ
+    // Èç¹ûÕıÔÚÖ´ĞĞ BGSAVE £¬ÄÇÃ´Ô¤¶¨ BGREWRITEAOF
+    // µÈ BGSAVE Íê³ÉÖ®ºó£¬ BGREWRITEAOF ¾Í»á¿ªÊ¼Ö´ĞĞ
     } else if (server.rdb_child_pid != -1) {
         server.aof_rewrite_scheduled = 1;
         addReplyStatus(c,"Background append only file rewriting scheduled");
 
-    // æ‰§è¡Œ BGREWRITEAOF
+    // Ö´ĞĞ BGREWRITEAOF
     } else if (rewriteAppendOnlyFileBackground() == REDIS_OK) {
         addReplyStatus(c,"Background append only file rewriting started");
 
@@ -1605,7 +1605,7 @@ void bgrewriteaofCommand(redisClient *c) {
 }
 
 /*
- * åˆ é™¤ AOF é‡å†™æ‰€äº§ç”Ÿçš„ä¸´æ—¶æ–‡ä»¶
+ * É¾³ı AOF ÖØĞ´Ëù²úÉúµÄÁÙÊ±ÎÄ¼ş
  */
 void aofRemoveTempFile(pid_t childpid) {
     char tmpfile[256];
@@ -1619,19 +1619,19 @@ void aofRemoveTempFile(pid_t childpid) {
  * a restart, normally the size is updated just adding the write length
  * to the current length, that is much faster. 
  *
- * å°† aof æ–‡ä»¶çš„å½“å‰å¤§å°è®°å½•åˆ°æœåŠ¡å™¨çŠ¶æ€ä¸­ã€‚
+ * ½« aof ÎÄ¼şµÄµ±Ç°´óĞ¡¼ÇÂ¼µ½·şÎñÆ÷×´Ì¬ÖĞ¡£
  *
- * é€šå¸¸ç”¨äº BGREWRITEAOF æ‰§è¡Œä¹‹åï¼Œæˆ–è€…æœåŠ¡å™¨é‡å¯ä¹‹åã€‚
+ * Í¨³£ÓÃÓÚ BGREWRITEAOF Ö´ĞĞÖ®ºó£¬»òÕß·şÎñÆ÷ÖØÆôÖ®ºó¡£
  */
 void aofUpdateCurrentSize(void) {
     struct redis_stat sb;
 
-    // è¯»å–æ–‡ä»¶çŠ¶æ€
+    // ¶ÁÈ¡ÎÄ¼ş×´Ì¬
     if (redis_fstat(server.aof_fd,&sb) == -1) {
         redisLog(REDIS_WARNING,"Unable to obtain the AOF file length. stat: %s",
             strerror(errno));
     } else {
-        // è®¾ç½®åˆ°æœåŠ¡å™¨
+        // ÉèÖÃµ½·şÎñÆ÷
         server.aof_current_size = sb.st_size;
     }
 }
@@ -1639,7 +1639,7 @@ void aofUpdateCurrentSize(void) {
 /* A background append only file rewriting (BGREWRITEAOF) terminated its work.
  * Handle this. 
  *
- * å½“å­çº¿ç¨‹å®Œæˆ AOF é‡å†™æ—¶ï¼Œçˆ¶è¿›ç¨‹è°ƒç”¨è¿™ä¸ªå‡½æ•°ã€‚
+ * µ±×ÓÏß³ÌÍê³É AOF ÖØĞ´Ê±£¬¸¸½ø³Ìµ÷ÓÃÕâ¸öº¯Êı¡£
  */
 void backgroundRewriteDoneHandler(int exitcode, int bysignal) {
     if (!bysignal && exitcode == 0) {
@@ -1652,7 +1652,7 @@ void backgroundRewriteDoneHandler(int exitcode, int bysignal) {
 
         /* Flush the differences accumulated by the parent to the
          * rewritten AOF. */
-        // æ‰“å¼€ä¿å­˜æ–° AOF æ–‡ä»¶å†…å®¹çš„ä¸´æ—¶æ–‡ä»¶
+        // ´ò¿ª±£´æĞÂ AOF ÎÄ¼şÄÚÈİµÄÁÙÊ±ÎÄ¼ş
         snprintf(tmpfile,256,"temp-rewriteaof-bg-%d.aof",
             (int)server.aof_child_pid);
         newfd = open(tmpfile,O_WRONLY|O_APPEND);
@@ -1662,8 +1662,8 @@ void backgroundRewriteDoneHandler(int exitcode, int bysignal) {
             goto cleanup;
         }
 
-        // å°†ç´¯ç§¯çš„é‡å†™ç¼“å­˜å†™å…¥åˆ°ä¸´æ—¶æ–‡ä»¶ä¸­
-        // è¿™ä¸ªå‡½æ•°è°ƒç”¨çš„ write æ“ä½œä¼šé˜»å¡ä¸»è¿›ç¨‹
+        // ½«ÀÛ»ıµÄÖØĞ´»º´æĞ´Èëµ½ÁÙÊ±ÎÄ¼şÖĞ
+        // Õâ¸öº¯Êıµ÷ÓÃµÄ write ²Ù×÷»á×èÈûÖ÷½ø³Ì
         if (aofRewriteBufferWrite(newfd) == -1) {
             redisLog(REDIS_WARNING,
                 "Error trying to flush the parent diff to the rewritten AOF: %s", strerror(errno));
@@ -1679,23 +1679,23 @@ void backgroundRewriteDoneHandler(int exitcode, int bysignal) {
          * writes. We don't want close(2) or rename(2) calls to block the
          * server on old file deletion.
          *
-         * å‰©ä¸‹çš„å·¥ä½œå°±æ˜¯å°†ä¸´æ—¶æ–‡ä»¶æ”¹åä¸º AOF ç¨‹åºæŒ‡å®šçš„æ–‡ä»¶åï¼Œ
-         * å¹¶å°†æ–°æ–‡ä»¶çš„ fd è®¾ä¸º AOF ç¨‹åºçš„å†™ç›®æ ‡ã€‚
+         * Ê£ÏÂµÄ¹¤×÷¾ÍÊÇ½«ÁÙÊ±ÎÄ¼ş¸ÄÃûÎª AOF ³ÌĞòÖ¸¶¨µÄÎÄ¼şÃû£¬
+         * ²¢½«ĞÂÎÄ¼şµÄ fd ÉèÎª AOF ³ÌĞòµÄĞ´Ä¿±ê¡£
          *
-         * ä¸è¿‡è¿™é‡Œæœ‰ä¸€ä¸ªé—®é¢˜ â€”â€”
-         * æˆ‘ä»¬ä¸æƒ³ close(2) æˆ–è€… rename(2) åœ¨åˆ é™¤æ—§æ–‡ä»¶æ—¶é˜»å¡ã€‚
+         * ²»¹ıÕâÀïÓĞÒ»¸öÎÊÌâ ¡ª¡ª
+         * ÎÒÃÇ²»Ïë close(2) »òÕß rename(2) ÔÚÉ¾³ı¾ÉÎÄ¼şÊ±×èÈû¡£
          *
          * There are two possible scenarios:
          *
-         * ä»¥ä¸‹æ˜¯ä¸¤ä¸ªå¯èƒ½çš„åœºæ™¯ï¼š
+         * ÒÔÏÂÊÇÁ½¸ö¿ÉÄÜµÄ³¡¾°£º
          *
          * 1) AOF is DISABLED and this was a one time rewrite. The temporary
          * file will be renamed to the configured file. When this file already
          * exists, it will be unlinked, which may block the server.
          *
-         * AOF è¢«å…³é—­ï¼Œè¿™ä¸ªæ˜¯ä¸€æ¬¡å•æ¬¡çš„å†™æ“ä½œã€‚
-         * ä¸´æ—¶æ–‡ä»¶ä¼šè¢«æ”¹åä¸º AOF æ–‡ä»¶ã€‚
-         * æœ¬æ¥å·²ç»å­˜åœ¨çš„ AOF æ–‡ä»¶ä¼šè¢« unlink ï¼Œè¿™å¯èƒ½ä¼šé˜»å¡æœåŠ¡å™¨ã€‚
+         * AOF ±»¹Ø±Õ£¬Õâ¸öÊÇÒ»´Îµ¥´ÎµÄĞ´²Ù×÷¡£
+         * ÁÙÊ±ÎÄ¼ş»á±»¸ÄÃûÎª AOF ÎÄ¼ş¡£
+         * ±¾À´ÒÑ¾­´æÔÚµÄ AOF ÎÄ¼ş»á±» unlink £¬Õâ¿ÉÄÜ»á×èÈû·şÎñÆ÷¡£
          *
          * 2) AOF is ENABLED and the rewritten AOF will immediately start
          * receiving writes. After the temporary file is renamed to the
@@ -1704,10 +1704,10 @@ void backgroundRewriteDoneHandler(int exitcode, int bysignal) {
          * causes the underlying file to be unlinked, which may block the
          * server.
          *
-         * AOF è¢«å¼€å¯ï¼Œå¹¶ä¸”é‡å†™åçš„ AOF æ–‡ä»¶ä¼šç«‹å³è¢«ç”¨äºæ¥æ”¶æ–°çš„å†™å…¥å‘½ä»¤ã€‚
-         * å½“ä¸´æ—¶æ–‡ä»¶è¢«æ”¹åä¸º AOF æ–‡ä»¶æ—¶ï¼ŒåŸæ¥çš„ AOF æ–‡ä»¶æè¿°ç¬¦ä¼šè¢«å…³é—­ã€‚
-         * å› ä¸º Redis ä¼šæ˜¯æœ€åä¸€ä¸ªå¼•ç”¨è¿™ä¸ªæ–‡ä»¶çš„è¿›ç¨‹ï¼Œ
-         * æ‰€ä»¥å…³é—­è¿™ä¸ªæ–‡ä»¶ä¼šå¼•èµ· unlink ï¼Œè¿™å¯èƒ½ä¼šé˜»å¡æœåŠ¡å™¨ã€‚
+         * AOF ±»¿ªÆô£¬²¢ÇÒÖØĞ´ºóµÄ AOF ÎÄ¼ş»áÁ¢¼´±»ÓÃÓÚ½ÓÊÕĞÂµÄĞ´ÈëÃüÁî¡£
+         * µ±ÁÙÊ±ÎÄ¼ş±»¸ÄÃûÎª AOF ÎÄ¼şÊ±£¬Ô­À´µÄ AOF ÎÄ¼şÃèÊö·û»á±»¹Ø±Õ¡£
+         * ÒòÎª Redis »áÊÇ×îºóÒ»¸öÒıÓÃÕâ¸öÎÄ¼şµÄ½ø³Ì£¬
+         * ËùÒÔ¹Ø±ÕÕâ¸öÎÄ¼ş»áÒıÆğ unlink £¬Õâ¿ÉÄÜ»á×èÈû·şÎñÆ÷¡£
          *
          * To mitigate the blocking effect of the unlink operation (either
          * caused by rename(2) in scenario 1, or by close(2) in scenario 2), we
@@ -1719,8 +1719,8 @@ void backgroundRewriteDoneHandler(int exitcode, int bysignal) {
          * we don't care what the outcome or duration of that close operation
          * is, as long as the file descriptor is released again. 
          *
-         * ä¸ºäº†é¿å…å‡ºç°é˜»å¡ç°è±¡ï¼Œç¨‹åºä¼šå°† close(2) æ”¾åˆ°åå°çº¿ç¨‹æ‰§è¡Œï¼Œ
-         * è¿™æ ·æœåŠ¡å™¨å°±å¯ä»¥æŒç»­å¤„ç†è¯·æ±‚ï¼Œä¸ä¼šè¢«ä¸­æ–­ã€‚
+         * ÎªÁË±ÜÃâ³öÏÖ×èÈûÏÖÏó£¬³ÌĞò»á½« close(2) ·Åµ½ºóÌ¨Ïß³ÌÖ´ĞĞ£¬
+         * ÕâÑù·şÎñÆ÷¾Í¿ÉÒÔ³ÖĞø´¦ÀíÇëÇó£¬²»»á±»ÖĞ¶Ï¡£
          */
         if (server.aof_fd == -1) {
             /* AOF disabled */
@@ -1737,9 +1737,9 @@ void backgroundRewriteDoneHandler(int exitcode, int bysignal) {
         /* Rename the temporary file. This will not unlink the target file if
          * it exists, because we reference it with "oldfd". 
          *
-         * å¯¹ä¸´æ—¶æ–‡ä»¶è¿›è¡Œæ”¹åï¼Œæ›¿æ¢ç°æœ‰çš„ AOF æ–‡ä»¶ã€‚
+         * ¶ÔÁÙÊ±ÎÄ¼ş½øĞĞ¸ÄÃû£¬Ìæ»»ÏÖÓĞµÄ AOF ÎÄ¼ş¡£
          *
-         * æ—§çš„ AOF æ–‡ä»¶ä¸ä¼šåœ¨è¿™é‡Œè¢« unlink ï¼Œå› ä¸º oldfd å¼•ç”¨äº†å®ƒã€‚
+         * ¾ÉµÄ AOF ÎÄ¼ş²»»áÔÚÕâÀï±» unlink £¬ÒòÎª oldfd ÒıÓÃÁËËü¡£
          */
         if (rename(tmpfile,server.aof_filename) == -1) {
             redisLog(REDIS_WARNING,
@@ -1753,37 +1753,37 @@ void backgroundRewriteDoneHandler(int exitcode, int bysignal) {
             /* AOF disabled, we don't need to set the AOF file descriptor
              * to this new file, so we can close it. 
              *
-             * AOF è¢«å…³é—­ï¼Œç›´æ¥å…³é—­ AOF æ–‡ä»¶ï¼Œ
-             * å› ä¸ºå…³é—­ AOF æœ¬æ¥å°±ä¼šå¼•èµ·é˜»å¡ï¼Œæ‰€ä»¥è¿™é‡Œå°±ç®— close è¢«é˜»å¡ä¹Ÿæ— æ‰€è°“
+             * AOF ±»¹Ø±Õ£¬Ö±½Ó¹Ø±Õ AOF ÎÄ¼ş£¬
+             * ÒòÎª¹Ø±Õ AOF ±¾À´¾Í»áÒıÆğ×èÈû£¬ËùÒÔÕâÀï¾ÍËã close ±»×èÈûÒ²ÎŞËùÎ½
              */
             close(newfd);
         } else {
             /* AOF enabled, replace the old fd with the new one. 
              *
-             * ç”¨æ–° AOF æ–‡ä»¶çš„ fd æ›¿æ¢åŸæ¥ AOF æ–‡ä»¶çš„ fd
+             * ÓÃĞÂ AOF ÎÄ¼şµÄ fd Ìæ»»Ô­À´ AOF ÎÄ¼şµÄ fd
              */
             oldfd = server.aof_fd;
             server.aof_fd = newfd;
 
-            // å› ä¸ºå‰é¢è¿›è¡Œäº† AOF é‡å†™ç¼“å­˜è¿½åŠ ï¼Œæ‰€ä»¥è¿™é‡Œç«‹å³ fsync ä¸€æ¬¡
+            // ÒòÎªÇ°Ãæ½øĞĞÁË AOF ÖØĞ´»º´æ×·¼Ó£¬ËùÒÔÕâÀïÁ¢¼´ fsync Ò»´Î
             if (server.aof_fsync == AOF_FSYNC_ALWAYS)
                 aof_fsync(newfd);
             else if (server.aof_fsync == AOF_FSYNC_EVERYSEC)
                 aof_background_fsync(newfd);
 
-            // å¼ºåˆ¶å¼•å‘ SELECT
+            // Ç¿ÖÆÒı·¢ SELECT
             server.aof_selected_db = -1; /* Make sure SELECT is re-issued */
 
-            // æ›´æ–° AOF æ–‡ä»¶çš„å¤§å°
+            // ¸üĞÂ AOF ÎÄ¼şµÄ´óĞ¡
             aofUpdateCurrentSize();
 
-            // è®°å½•å‰ä¸€æ¬¡é‡å†™æ—¶çš„å¤§å°
+            // ¼ÇÂ¼Ç°Ò»´ÎÖØĞ´Ê±µÄ´óĞ¡
             server.aof_rewrite_base_size = server.aof_current_size;
 
             /* Clear regular AOF buffer since its contents was just written to
              * the new AOF from the background rewrite buffer. 
              *
-             * æ¸…ç©º AOF ç¼“å­˜ï¼Œå› ä¸ºå®ƒçš„å†…å®¹å·²ç»è¢«å†™å…¥è¿‡äº†ï¼Œæ²¡ç”¨äº†
+             * Çå¿Õ AOF »º´æ£¬ÒòÎªËüµÄÄÚÈİÒÑ¾­±»Ğ´Èë¹ıÁË£¬Ã»ÓÃÁË
              */
             sdsfree(server.aof_buf);
             server.aof_buf = sdsempty();
@@ -1795,28 +1795,28 @@ void backgroundRewriteDoneHandler(int exitcode, int bysignal) {
 
         /* Change state from WAIT_REWRITE to ON if needed 
          *
-         * å¦‚æœæ˜¯ç¬¬ä¸€æ¬¡åˆ›å»º AOF æ–‡ä»¶ï¼Œé‚£ä¹ˆæ›´æ–° AOF çŠ¶æ€
+         * Èç¹ûÊÇµÚÒ»´Î´´½¨ AOF ÎÄ¼ş£¬ÄÇÃ´¸üĞÂ AOF ×´Ì¬
          */
         if (server.aof_state == REDIS_AOF_WAIT_REWRITE)
             server.aof_state = REDIS_AOF_ON;
 
         /* Asynchronously close the overwritten AOF. 
          *
-         * å¼‚æ­¥å…³é—­æ—§ AOF æ–‡ä»¶
+         * Òì²½¹Ø±Õ¾É AOF ÎÄ¼ş
          */
         if (oldfd != -1) bioCreateBackgroundJob(REDIS_BIO_CLOSE_FILE,(void*)(long)oldfd,NULL,NULL);
 
         redisLog(REDIS_VERBOSE,
             "Background AOF rewrite signal handler took %lldus", ustime()-now);
 
-    // BGREWRITEAOF é‡å†™å‡ºé”™
+    // BGREWRITEAOF ÖØĞ´³ö´í
     } else if (!bysignal && exitcode != 0) {
         server.aof_lastbgrewrite_status = REDIS_ERR;
 
         redisLog(REDIS_WARNING,
             "Background AOF rewrite terminated with error");
 
-    // æœªçŸ¥é”™è¯¯
+    // Î´Öª´íÎó
     } else {
         server.aof_lastbgrewrite_status = REDIS_ERR;
 
@@ -1826,13 +1826,13 @@ void backgroundRewriteDoneHandler(int exitcode, int bysignal) {
 
 cleanup:
 
-    // æ¸…ç©º AOF ç¼“å†²åŒº
+    // Çå¿Õ AOF »º³åÇø
     aofRewriteBufferReset();
 
-    // ç§»é™¤ä¸´æ—¶æ–‡ä»¶
+    // ÒÆ³ıÁÙÊ±ÎÄ¼ş
     aofRemoveTempFile(server.aof_child_pid);
 
-    // é‡ç½®é»˜è®¤å±æ€§
+    // ÖØÖÃÄ¬ÈÏÊôĞÔ
     server.aof_child_pid = -1;
     server.aof_rewrite_time_last = time(NULL)-server.aof_rewrite_time_start;
     server.aof_rewrite_time_start = -1;

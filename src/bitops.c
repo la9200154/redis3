@@ -37,8 +37,8 @@
 /* This helper function used by GETBIT / SETBIT parses the bit offset argument
  * making sure an error is returned if it is negative or if it overflows
  * Redis 512 MB limit for the string value. */
-// è¾…ä½å‡½æ•°ï¼Œè¢« GETBIT ã€ SETBIT æ‰€ä½¿ç”¨
-// ç”¨äºæ£€æŸ¥å­—ç¬¦ä¸²çš„å¤§å°æœ‰å¦è¶…è¿‡ 512 MB
+// ¸¨×ôº¯Êı£¬±» GETBIT ¡¢ SETBIT ËùÊ¹ÓÃ
+// ÓÃÓÚ¼ì²é×Ö·û´®µÄ´óĞ¡ÓĞ·ñ³¬¹ı 512 MB
 static int getBitOffsetFromArgument(redisClient *c, robj *o, size_t *offset) {
     long long loffset;
     char *err = "bit offset is not an integer or out of range";
@@ -60,16 +60,16 @@ static int getBitOffsetFromArgument(redisClient *c, robj *o, size_t *offset) {
 /* Count number of bits set in the binary array pointed by 's' and long
  * 'count' bytes. The implementation of this function is required to
  * work with a input string length up to 512 MB. */
-// è®¡ç®—é•¿åº¦ä¸º count çš„äºŒè¿›åˆ¶æ•°ç»„æŒ‡é’ˆ s è¢«è®¾ç½®ä¸º 1 çš„ä½æ•°é‡
-// è¿™ä¸ªå‡½æ•°åªèƒ½åœ¨æœ€å¤§ä¸º 512 MB çš„å­—ç¬¦ä¸²ä¸Šä½¿ç”¨
+// ¼ÆËã³¤¶ÈÎª count µÄ¶ş½øÖÆÊı×éÖ¸Õë s ±»ÉèÖÃÎª 1 µÄÎ»ÊıÁ¿
+// Õâ¸öº¯ÊıÖ»ÄÜÔÚ×î´óÎª 512 MB µÄ×Ö·û´®ÉÏÊ¹ÓÃ
 size_t redisPopcount(void *s, long count) {
     size_t bits = 0;
     unsigned char *p = s;
     uint32_t *p4;
-    // é€šè¿‡æŸ¥è¡¨æ¥è®¡ç®—ï¼Œå¯¹äº 1 å­—èŠ‚æ‰€èƒ½è¡¨ç¤ºçš„å€¼æ¥è¯´
-    // è¿™äº›å€¼çš„äºŒè¿›åˆ¶è¡¨ç¤ºæ‰€å¸¦æœ‰çš„ 1 çš„æ•°é‡
-    // æ¯”å¦‚æ•´æ•° 3 çš„äºŒè¿›åˆ¶è¡¨ç¤º 0011 ï¼Œå¸¦æœ‰ä¸¤ä¸ª 1
-    // æ­£å¥½æ˜¯æŸ¥è¡¨ bitsinbyte[3] == 2
+    // Í¨¹ı²é±íÀ´¼ÆËã£¬¶ÔÓÚ 1 ×Ö½ÚËùÄÜ±íÊ¾µÄÖµÀ´Ëµ
+    // ÕâĞ©ÖµµÄ¶ş½øÖÆ±íÊ¾Ëù´øÓĞµÄ 1 µÄÊıÁ¿
+    // ±ÈÈçÕûÊı 3 µÄ¶ş½øÖÆ±íÊ¾ 0011 £¬´øÓĞÁ½¸ö 1
+    // ÕıºÃÊÇ²é±í bitsinbyte[3] == 2
     static const unsigned char bitsinbyte[256] = {0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,4,5,5,6,5,6,6,7,5,6,6,7,6,7,7,8};
 
     /* Count initial bytes not aligned to 32 bit. */
@@ -79,8 +79,8 @@ size_t redisPopcount(void *s, long count) {
     }
 
     /* Count bits 16 bytes at a time */
-    // æ¯æ¬¡ç»Ÿè®¡ 16 å­—èŠ‚
-    // å…³äºè¿™é‡Œæ‰€ä½¿ç”¨çš„ä¼˜åŒ–ç®—æ³•ï¼Œå¯ä»¥å‚è€ƒï¼š
+    // Ã¿´ÎÍ³¼Æ 16 ×Ö½Ú
+    // ¹ØÓÚÕâÀïËùÊ¹ÓÃµÄÓÅ»¯Ëã·¨£¬¿ÉÒÔ²Î¿¼£º
     // http://yesteapea.wordpress.com/2013/03/03/counting-the-number-of-set-bits-in-an-integer/
     p4 = (uint32_t*)p;
     while(count>=16) {
@@ -107,7 +107,7 @@ size_t redisPopcount(void *s, long count) {
     }
 
     /* Count the remaining bytes. */
-    // ä¸è¶³ 16 å­—èŠ‚çš„ï¼Œå‰©ä¸‹çš„æ¯ä¸ªå­—èŠ‚é€šè¿‡æŸ¥è¡¨æ¥å®Œæˆ
+    // ²»×ã 16 ×Ö½ÚµÄ£¬Ê£ÏÂµÄÃ¿¸ö×Ö½ÚÍ¨¹ı²é±íÀ´Íê³É
     p = (unsigned char*)p4;
     while(count--) bits += bitsinbyte[*p++];
     return bits;
@@ -218,68 +218,68 @@ void setbitCommand(redisClient *c) {
     int byteval, bitval;
     long on;
 
-    // è·å– offset å‚æ•°
+    // »ñÈ¡ offset ²ÎÊı
     if (getBitOffsetFromArgument(c,c->argv[2],&bitoffset) != REDIS_OK)
         return;
 
-    // è·å– value å‚æ•°
+    // »ñÈ¡ value ²ÎÊı
     if (getLongFromObjectOrReply(c,c->argv[3],&on,err) != REDIS_OK)
         return;
 
     /* Bits can only be set or cleared... */
-    // value å‚æ•°çš„å€¼åªèƒ½æ˜¯ 0 æˆ–è€… 1 ï¼Œå¦åˆ™è¿”å›é”™è¯¯
+    // value ²ÎÊıµÄÖµÖ»ÄÜÊÇ 0 »òÕß 1 £¬·ñÔò·µ»Ø´íÎó
     if (on & ~1) {
         addReplyError(c,err);
         return;
     }
 
-    // æŸ¥æ‰¾å­—ç¬¦ä¸²å¯¹è±¡
+    // ²éÕÒ×Ö·û´®¶ÔÏó
     o = lookupKeyWrite(c->db,c->argv[1]);
     if (o == NULL) {
 
-        // å¯¹è±¡ä¸å­˜åœ¨ï¼Œåˆ›å»ºä¸€ä¸ªç©ºå­—ç¬¦ä¸²å¯¹è±¡
+        // ¶ÔÏó²»´æÔÚ£¬´´½¨Ò»¸ö¿Õ×Ö·û´®¶ÔÏó
         o = createObject(REDIS_STRING,sdsempty());
 
-        // å¹¶æ·»åŠ åˆ°æ•°æ®åº“
+        // ²¢Ìí¼Óµ½Êı¾İ¿â
         dbAdd(c->db,c->argv[1],o);
 
     } else {
 
-        // å¯¹è±¡å­˜åœ¨ï¼Œæ£€æŸ¥ç±»å‹æ˜¯å¦å­—ç¬¦ä¸²
+        // ¶ÔÏó´æÔÚ£¬¼ì²éÀàĞÍÊÇ·ñ×Ö·û´®
         if (checkType(c,o,REDIS_STRING)) return;
 
         o = dbUnshareStringValue(c->db,c->argv[1],o);
     }
 
     /* Grow sds value to the right length if necessary */
-    // è®¡ç®—å®¹çº³ offset å‚æ•°æ‰€æŒ‡å®šçš„åç§»é‡æ‰€éœ€çš„å­—èŠ‚æ•°
-    // å¦‚æœ o å¯¹è±¡çš„å­—èŠ‚ä¸å¤Ÿé•¿çš„è¯ï¼Œå°±æ‰©å±•å®ƒ
-    // é•¿åº¦çš„è®¡ç®—å…¬å¼æ˜¯ bitoffset >> 3 + 1
-    // æ¯”å¦‚ 30 >> 3 + 1 = 4 ï¼Œä¹Ÿå³æ˜¯ä¸ºäº†è®¾ç½® offset 30 ï¼Œ
-    // æˆ‘ä»¬éœ€è¦åˆ›å»ºä¸€ä¸ª 4 å­—èŠ‚ï¼ˆ32 ä½é•¿çš„ SDSï¼‰
+    // ¼ÆËãÈİÄÉ offset ²ÎÊıËùÖ¸¶¨µÄÆ«ÒÆÁ¿ËùĞèµÄ×Ö½ÚÊı
+    // Èç¹û o ¶ÔÏóµÄ×Ö½Ú²»¹»³¤µÄ»°£¬¾ÍÀ©Õ¹Ëü
+    // ³¤¶ÈµÄ¼ÆËã¹«Ê½ÊÇ bitoffset >> 3 + 1
+    // ±ÈÈç 30 >> 3 + 1 = 4 £¬Ò²¼´ÊÇÎªÁËÉèÖÃ offset 30 £¬
+    // ÎÒÃÇĞèÒª´´½¨Ò»¸ö 4 ×Ö½Ú£¨32 Î»³¤µÄ SDS£©
     byte = bitoffset >> 3;
     o->ptr = sdsgrowzero(o->ptr,byte+1);
 
     /* Get current values */
-    // å°†æŒ‡é’ˆå®šä½åˆ°è¦è®¾ç½®çš„ä½æ‰€åœ¨çš„å­—èŠ‚ä¸Š
+    // ½«Ö¸Õë¶¨Î»µ½ÒªÉèÖÃµÄÎ»ËùÔÚµÄ×Ö½ÚÉÏ
     byteval = ((uint8_t*)o->ptr)[byte];
-    // å®šä½åˆ°è¦è®¾ç½®çš„ä½ä¸Šé¢
+    // ¶¨Î»µ½ÒªÉèÖÃµÄÎ»ÉÏÃæ
     bit = 7 - (bitoffset & 0x7);
-    // è®°å½•ä½ç°åœ¨çš„å€¼
+    // ¼ÇÂ¼Î»ÏÖÔÚµÄÖµ
     bitval = byteval & (1 << bit);
 
     /* Update byte with new bit value and return original value */
-    // æ›´æ–°å­—èŠ‚ä¸­çš„ä½ï¼Œè®¾ç½®å®ƒçš„å€¼ä¸º on å‚æ•°çš„å€¼
+    // ¸üĞÂ×Ö½ÚÖĞµÄÎ»£¬ÉèÖÃËüµÄÖµÎª on ²ÎÊıµÄÖµ
     byteval &= ~(1 << bit);
     byteval |= ((on & 0x1) << bit);
     ((uint8_t*)o->ptr)[byte] = byteval;
 
-    // å‘é€æ•°æ®åº“ä¿®æ”¹é€šçŸ¥
+    // ·¢ËÍÊı¾İ¿âĞŞ¸ÄÍ¨Öª
     signalModifiedKey(c->db,c->argv[1]);
     notifyKeyspaceEvent(REDIS_NOTIFY_STRING,"setbit",c->argv[1],c->db->id);
     server.dirty++;
 
-    // å‘å®¢æˆ·ç«¯è¿”å›ä½åŸæ¥çš„å€¼
+    // Ïò¿Í»§¶Ë·µ»ØÎ»Ô­À´µÄÖµ
     addReply(c, bitval ? shared.cone : shared.czero);
 }
 
@@ -291,31 +291,31 @@ void getbitCommand(redisClient *c) {
     size_t byte, bit;
     size_t bitval = 0;
 
-    // è¯»å– offset å‚æ•°
+    // ¶ÁÈ¡ offset ²ÎÊı
     if (getBitOffsetFromArgument(c,c->argv[2],&bitoffset) != REDIS_OK)
         return;
 
-    // æŸ¥æ‰¾å¯¹è±¡ï¼Œå¹¶è¿›è¡Œç±»å‹æ£€æŸ¥
+    // ²éÕÒ¶ÔÏó£¬²¢½øĞĞÀàĞÍ¼ì²é
     if ((o = lookupKeyReadOrReply(c,c->argv[1],shared.czero)) == NULL ||
         checkType(c,o,REDIS_STRING)) return;
 
-    // è®¡ç®—å‡º offset æ‰€æŒ‡å®šçš„ä½æ‰€åœ¨çš„å­—èŠ‚
+    // ¼ÆËã³ö offset ËùÖ¸¶¨µÄÎ»ËùÔÚµÄ×Ö½Ú
     byte = bitoffset >> 3;
-    // è®¡ç®—å‡ºä½æ‰€åœ¨çš„ä½ç½®
+    // ¼ÆËã³öÎ»ËùÔÚµÄÎ»ÖÃ
     bit = 7 - (bitoffset & 0x7);
 
-    // å–å‡ºä½
+    // È¡³öÎ»
     if (sdsEncodedObject(o)) {
-        // å­—ç¬¦ä¸²ç¼–ç ï¼Œç›´æ¥å–å€¼
+        // ×Ö·û´®±àÂë£¬Ö±½ÓÈ¡Öµ
         if (byte < sdslen(o->ptr))
             bitval = ((uint8_t*)o->ptr)[byte] & (1 << bit);
     } else {
-        // æ•´æ•°ç¼–ç ï¼Œå…ˆè½¬æ¢æˆå­—ç¬¦ä¸²ï¼Œå†å–å€¼
+        // ÕûÊı±àÂë£¬ÏÈ×ª»»³É×Ö·û´®£¬ÔÙÈ¡Öµ
         if (byte < (size_t)ll2string(llbuf,sizeof(llbuf),(long)o->ptr))
             bitval = llbuf[byte] & (1 << bit);
     }
 
-    // è¿”å›ä½
+    // ·µ»ØÎ»
     addReply(c, bitval ? shared.cone : shared.czero);
 }
 
@@ -331,7 +331,7 @@ void bitopCommand(redisClient *c) {
     unsigned char *res = NULL; /* Resulting string. */
 
     /* Parse the operation name. */
-    // è¯»å…¥ op å‚æ•°ï¼Œç¡®å®šè¦æ‰§è¡Œçš„æ“ä½œ
+    // ¶ÁÈë op ²ÎÊı£¬È·¶¨ÒªÖ´ĞĞµÄ²Ù×÷
     if ((opname[0] == 'a' || opname[0] == 'A') && !strcasecmp(opname,"and"))
         op = BITOP_AND;
     else if((opname[0] == 'o' || opname[0] == 'O') && !strcasecmp(opname,"or"))
@@ -346,28 +346,28 @@ void bitopCommand(redisClient *c) {
     }
 
     /* Sanity check: NOT accepts only a single key argument. */
-    // NOT æ“ä½œåªèƒ½æ¥å—å•ä¸ª key è¾“å…¥
+    // NOT ²Ù×÷Ö»ÄÜ½ÓÊÜµ¥¸ö key ÊäÈë
     if (op == BITOP_NOT && c->argc != 4) {
         addReplyError(c,"BITOP NOT must be called with a single source key.");
         return;
     }
 
     /* Lookup keys, and store pointers to the string objects into an array. */
-    // æŸ¥æ‰¾è¾“å…¥é”®ï¼Œå¹¶å°†å®ƒä»¬æ”¾å…¥ä¸€ä¸ªæ•°ç»„é‡Œé¢
+    // ²éÕÒÊäÈë¼ü£¬²¢½«ËüÃÇ·ÅÈëÒ»¸öÊı×éÀïÃæ
     numkeys = c->argc - 3;
-    // å­—ç¬¦ä¸²æ•°ç»„ï¼Œä¿å­˜ sds å€¼
+    // ×Ö·û´®Êı×é£¬±£´æ sds Öµ
     src = zmalloc(sizeof(unsigned char*) * numkeys);
-    // é•¿åº¦æ•°ç»„ï¼Œä¿å­˜ sds çš„é•¿åº¦
+    // ³¤¶ÈÊı×é£¬±£´æ sds µÄ³¤¶È
     len = zmalloc(sizeof(long) * numkeys);
-    // å¯¹è±¡æ•°ç»„ï¼Œä¿å­˜å­—ç¬¦ä¸²å¯¹è±¡
+    // ¶ÔÏóÊı×é£¬±£´æ×Ö·û´®¶ÔÏó
     objects = zmalloc(sizeof(robj*) * numkeys);
     for (j = 0; j < numkeys; j++) {
 
-        // æŸ¥æ‰¾å¯¹è±¡
+        // ²éÕÒ¶ÔÏó
         o = lookupKeyRead(c->db,c->argv[j+3]);
 
         /* Handle non-existing keys as empty strings. */
-        // ä¸å­˜åœ¨çš„é”®è¢«è§†ä¸ºç©ºå­—ç¬¦ä¸²
+        // ²»´æÔÚµÄ¼ü±»ÊÓÎª¿Õ×Ö·û´®
         if (o == NULL) {
             objects[j] = NULL;
             src[j] = NULL;
@@ -377,7 +377,7 @@ void bitopCommand(redisClient *c) {
         }
 
         /* Return an error if one of the keys is not a string. */
-        // é”®ä¸æ˜¯å­—ç¬¦ä¸²ç±»å‹ï¼Œè¿”å›é”™è¯¯ï¼Œæ”¾å¼ƒæ‰§è¡Œæ“ä½œ
+        // ¼ü²»ÊÇ×Ö·û´®ÀàĞÍ£¬·µ»Ø´íÎó£¬·ÅÆúÖ´ĞĞ²Ù×÷
         if (checkType(c,o,REDIS_STRING)) {
             for (j = j-1; j >= 0; j--) {
                 if (objects[j])
@@ -389,25 +389,25 @@ void bitopCommand(redisClient *c) {
             return;
         }
 
-        // è®°å½•å¯¹è±¡
+        // ¼ÇÂ¼¶ÔÏó
         objects[j] = getDecodedObject(o);
-        // è®°å½• sds
+        // ¼ÇÂ¼ sds
         src[j] = objects[j]->ptr;
-        // è®°å½• sds é•¿åº¦
+        // ¼ÇÂ¼ sds ³¤¶È
         len[j] = sdslen(objects[j]->ptr);
         
-        // è®°å½•ç›®å‰æœ€é•¿ sds çš„é•¿åº¦
+        // ¼ÇÂ¼Ä¿Ç°×î³¤ sds µÄ³¤¶È
         if (len[j] > maxlen) maxlen = len[j];
 
-        // è®°å½•ç›®å‰æœ€çŸ­ sds çš„é•¿åº¦
+        // ¼ÇÂ¼Ä¿Ç°×î¶Ì sds µÄ³¤¶È
         if (j == 0 || len[j] < minlen) minlen = len[j];
     }
 
     /* Compute the bit operation, if at least one string is not empty. */
-    // å¦‚æœæœ‰è‡³å°‘ä¸€ä¸ªéç©ºå­—ç¬¦ä¸²ï¼Œé‚£ä¹ˆæ‰§è¡Œè®¡ç®—
+    // Èç¹ûÓĞÖÁÉÙÒ»¸ö·Ç¿Õ×Ö·û´®£¬ÄÇÃ´Ö´ĞĞ¼ÆËã
     if (maxlen) {
 
-        // æ ¹æ®æœ€å¤§é•¿åº¦ï¼Œåˆ›å»ºä¸€ä¸ª sds ï¼Œè¯¥ sds çš„æ‰€æœ‰ä½éƒ½è¢«è®¾ç½®ä¸º 0
+        // ¸ù¾İ×î´ó³¤¶È£¬´´½¨Ò»¸ö sds £¬¸Ã sds µÄËùÓĞÎ»¶¼±»ÉèÖÃÎª 0
         res = (unsigned char*) sdsnewlen(NULL,maxlen);
 
         unsigned char output, byte;
@@ -416,7 +416,7 @@ void bitopCommand(redisClient *c) {
         /* Fast path: as far as we have data for all the input bitmaps we
          * can take a fast path that performs much better than the
          * vanilla algorithm. */
-        // åœ¨é”®çš„æ•°é‡æ¯”è¾ƒå°‘æ—¶ï¼Œè¿›è¡Œä¼˜åŒ–
+        // ÔÚ¼üµÄÊıÁ¿±È½ÏÉÙÊ±£¬½øĞĞÓÅ»¯
         j = 0;
         if (minlen && numkeys <= 16) {
             unsigned long *lp[16];
@@ -427,8 +427,8 @@ void bitopCommand(redisClient *c) {
             memcpy(res,src[0],minlen);
 
             /* Different branches per different operations for speed (sorry). */
-            // å½“è¦å¤„ç†çš„ä½å¤§äºç­‰äº 32 ä½æ—¶
-            // æ¯æ¬¡è½½å…¥ 4*8 = 32 ä¸ªä½ï¼Œç„¶åå¯¹è¿™äº›ä½è¿›è¡Œè®¡ç®—ï¼Œåˆ©ç”¨ç¼“å­˜ï¼Œè¿›è¡ŒåŠ é€Ÿ
+            // µ±Òª´¦ÀíµÄÎ»´óÓÚµÈÓÚ 32 Î»Ê±
+            // Ã¿´ÎÔØÈë 4*8 = 32 ¸öÎ»£¬È»ºó¶ÔÕâĞ©Î»½øĞĞ¼ÆËã£¬ÀûÓÃ»º´æ£¬½øĞĞ¼ÓËÙ
             if (op == BITOP_AND) {
                 while(minlen >= sizeof(unsigned long)*4) {
                     for (i = 1; i < numkeys; i++) {
@@ -482,13 +482,13 @@ void bitopCommand(redisClient *c) {
         }
 
         /* j is set to the next byte to process by the previous loop. */
-        // ä»¥æ­£å¸¸æ–¹å¼æ‰§è¡Œä½è¿ç®—
+        // ÒÔÕı³£·½Ê½Ö´ĞĞÎ»ÔËËã
         for (; j < maxlen; j++) {
             output = (len[0] <= j) ? 0 : src[0][j];
             if (op == BITOP_NOT) output = ~output;
-            // éå†æ‰€æœ‰è¾“å…¥é”®ï¼Œå¯¹æ‰€æœ‰è¾“å…¥çš„ scr[i][j] å­—èŠ‚è¿›è¡Œè¿ç®—
+            // ±éÀúËùÓĞÊäÈë¼ü£¬¶ÔËùÓĞÊäÈëµÄ scr[i][j] ×Ö½Ú½øĞĞÔËËã
             for (i = 1; i < numkeys; i++) {
-                // å¦‚æœæ•°ç»„çš„é•¿åº¦ä¸è¶³ï¼Œé‚£ä¹ˆç›¸åº”çš„å­—èŠ‚è¢«å‡è®¾ä¸º 0
+                // Èç¹ûÊı×éµÄ³¤¶È²»×ã£¬ÄÇÃ´ÏàÓ¦µÄ×Ö½Ú±»¼ÙÉèÎª 0
                 byte = (len[i] <= j) ? 0 : src[i][j];
                 switch(op) {
                 case BITOP_AND: output &= byte; break;
@@ -496,12 +496,12 @@ void bitopCommand(redisClient *c) {
                 case BITOP_XOR: output ^= byte; break;
                 }
             }
-            // ä¿å­˜è¾“å‡º
+            // ±£´æÊä³ö
             res[j] = output;
         }
     }
 
-    // é‡Šæ”¾èµ„æº
+    // ÊÍ·Å×ÊÔ´
     for (j = 0; j < numkeys; j++) {
         if (objects[j])
             decrRefCount(objects[j]);
@@ -512,13 +512,13 @@ void bitopCommand(redisClient *c) {
 
     /* Store the computed value into the target key */
     if (maxlen) {
-        // ä¿å­˜ç»“æœåˆ°æŒ‡å®šé”®
+        // ±£´æ½á¹ûµ½Ö¸¶¨¼ü
         o = createObject(REDIS_STRING,res);
         setKey(c->db,targetkey,o);
         notifyKeyspaceEvent(REDIS_NOTIFY_STRING,"set",targetkey,c->db->id);
         decrRefCount(o);
     } else if (dbDelete(c->db,targetkey)) {
-        // è¾“å…¥ä¸ºç©ºï¼Œæ²¡æœ‰äº§ç”Ÿç»“æœï¼Œä»…ä»…åˆ é™¤æŒ‡å®šé”®
+        // ÊäÈëÎª¿Õ£¬Ã»ÓĞ²úÉú½á¹û£¬½ö½öÉ¾³ıÖ¸¶¨¼ü
         signalModifiedKey(c->db,targetkey);
         notifyKeyspaceEvent(REDIS_NOTIFY_GENERIC,"del",targetkey,c->db->id);
     }
@@ -534,13 +534,13 @@ void bitcountCommand(redisClient *c) {
     char llbuf[32];
 
     /* Lookup, check for type, and return 0 for non existing keys. */
-    // æŸ¥æ‰¾ key
+    // ²éÕÒ key
     if ((o = lookupKeyReadOrReply(c,c->argv[1],shared.czero)) == NULL ||
         checkType(c,o,REDIS_STRING)) return;
 
     /* Set the 'p' pointer to the string, that can be just a stack allocated
      * array if our string was integer encoded. */
-    // æ£€æŸ¥å¯¹è±¡çš„ç¼–ç ï¼Œå¹¶åœ¨æœ‰éœ€è¦æ—¶è½¬æ¢å€¼çš„ç±»å‹
+    // ¼ì²é¶ÔÏóµÄ±àÂë£¬²¢ÔÚÓĞĞèÒªÊ±×ª»»ÖµµÄÀàĞÍ
     if (o->encoding == REDIS_ENCODING_INT) {
         p = (unsigned char*) llbuf;
         strlen = ll2string(llbuf,sizeof(llbuf),(long)o->ptr);
@@ -550,7 +550,7 @@ void bitcountCommand(redisClient *c) {
     }
 
     /* Parse start/end range if any. */
-    // å¦‚æœç»™å®šäº† start å’Œ end å‚æ•°ï¼Œé‚£ä¹ˆè¯»å…¥å®ƒä»¬
+    // Èç¹û¸ø¶¨ÁË start ºÍ end ²ÎÊı£¬ÄÇÃ´¶ÁÈëËüÃÇ
     if (c->argc == 4) {
         if (getLongFromObjectOrReply(c,c->argv[2],&start,NULL) != REDIS_OK)
             return;
@@ -575,12 +575,12 @@ void bitcountCommand(redisClient *c) {
     /* Precondition: end >= 0 && end < strlen, so the only condition where
      * zero can be returned is: start > end. */
     if (start > end) {
-        // è¶…å‡ºèŒƒå›´çš„ case ï¼Œç•¥è¿‡
+        // ³¬³ö·¶Î§µÄ case £¬ÂÔ¹ı
         addReply(c,shared.czero);
     } else {
         long bytes = end-start+1;
 
-        // éå†æ•°ç»„ï¼Œç»Ÿè®¡å€¼ä¸º 1 çš„ä½çš„æ•°é‡
+        // ±éÀúÊı×é£¬Í³¼ÆÖµÎª 1 µÄÎ»µÄÊıÁ¿
         addReplyLongLong(c,redisPopcount(p+start,bytes));
     }
 }
