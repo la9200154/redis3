@@ -70,7 +70,7 @@ list *listCreate(void)
  * 释放整个链表，以及链表中所有节点
  *
  * T = O(N)
- */
+ *//////
 void listRelease(list *list)
 {
     unsigned long len;
@@ -110,7 +110,7 @@ void listRelease(list *list)
  * 如果执行成功，返回传入的链表指针
  *
  * T = O(1)
- */
+ *//////
 list *listAddNodeHead(list *list, void *value)
 {
     listNode *node;
@@ -154,7 +154,7 @@ list *listAddNodeHead(list *list, void *value)
  * 如果执行成功，返回传入的链表指针
  *
  * T = O(1)
- */
+ */////
 list *listAddNodeTail(list *list, void *value)
 {
     listNode *node;
@@ -191,7 +191,7 @@ list *listAddNodeTail(list *list, void *value)
  * 如果 after 为 1 ，将新节点插入到 old_node 之后。
  *
  * T = O(1)
- */
+ *////////
 list *listInsertNode(list *list, listNode *old_node, void *value, int after) {
     listNode *node;
 
@@ -245,7 +245,7 @@ list *listInsertNode(list *list, listNode *old_node, void *value, int after) {
  * 对节点私有值(private value of the node)的释放工作由调用者进行。
  *
  * T = O(1)
- */
+ *//////
 void listDelNode(list *list, listNode *node)
 {
     // 调整前置节点的指针
@@ -283,7 +283,7 @@ void listDelNode(list *list, listNode *node)
  *  AL_START_TAIL ：从表尾想表头迭代
  *
  * T = O(1)
- */
+ *///////
 listIter *listGetIterator(list *list, int direction)
 {
     // 为迭代器分配内存
@@ -307,7 +307,7 @@ listIter *listGetIterator(list *list, int direction)
  * 释放迭代器
  *
  * T = O(1)
- */
+ */////
 void listReleaseIterator(listIter *iter) {
     zfree(iter);
 }
@@ -318,7 +318,7 @@ void listReleaseIterator(listIter *iter) {
  * 并将迭代指针重新指向表头节点。
  *
  * T = O(1)
- */
+ */////
 void listRewind(list *list, listIter *li) {
     li->next = list->head;
     li->direction = AL_START_HEAD;
@@ -329,7 +329,7 @@ void listRewind(list *list, listIter *li) {
  * 并将迭代指针重新指向表尾节点。
  *
  * T = O(1)
- */
+ *///////
 void listRewindTail(list *list, listIter *li) {
     li->next = list->tail;
     li->direction = AL_START_TAIL;
@@ -362,7 +362,7 @@ void listRewindTail(list *list, listIter *li) {
  * }
  *
  * T = O(1)
- */
+ *//////
 listNode *listNext(listIter *iter)
 {
     listNode *current = iter->next;
@@ -400,7 +400,7 @@ listNode *listNext(listIter *iter)
  * 无论复制是成功还是失败，输入节点都不会修改。
  *
  * T = O(N)
- */
+ *//////
 list *listDup(list *orig)
 {
     list *copy;
@@ -467,7 +467,7 @@ list *listDup(list *orig)
  * 如果没有匹配任何节点，那么返回 NULL 。
  *
  * T = O(N)
- */
+ */////
 listNode *listSearchKey(list *list, void *key)
 {
     listIter *iter;
@@ -512,7 +512,7 @@ listNode *listSearchKey(list *list, void *key)
  * 如果索引超出范围（out of range），返回 NULL 。
  *
  * T = O(N)
- */
+ */////
 listNode *listIndex(list *list, long index) {
     listNode *n;
 
@@ -535,7 +535,7 @@ listNode *listIndex(list *list, long index) {
  * 取出链表的表尾节点，并将它移动到表头，成为新的表头节点。
  *
  * T = O(1)
- */
+ *//////
 void listRotate(list *list) {
     listNode *tail = list->tail;
 
