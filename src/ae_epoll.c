@@ -46,7 +46,7 @@ typedef struct aeApiState {
 
 /*
  * 创建一个新的 epoll 实例，并将它赋值给 eventLoop
- */
+ */////epoll_create
 static int aeApiCreate(aeEventLoop *eventLoop) {
 
     aeApiState *state = zmalloc(sizeof(aeApiState));
@@ -75,7 +75,7 @@ static int aeApiCreate(aeEventLoop *eventLoop) {
 
 /*
  * 调整事件槽大小
- */
+ *////zrealloc
 static int aeApiResize(aeEventLoop *eventLoop, int setsize) {
     aeApiState *state = eventLoop->apidata;
 
@@ -85,7 +85,7 @@ static int aeApiResize(aeEventLoop *eventLoop, int setsize) {
 
 /*
  * 释放 epoll 实例和事件槽
- */
+ *//////
 static void aeApiFree(aeEventLoop *eventLoop) {
     aeApiState *state = eventLoop->apidata;
 
@@ -96,7 +96,7 @@ static void aeApiFree(aeEventLoop *eventLoop) {
 
 /*
  * 关联给定事件到 fd
- */
+ *////epoll_ctl
 static int aeApiAddEvent(aeEventLoop *eventLoop, int fd, int mask) {
     aeApiState *state = eventLoop->apidata;
     struct epoll_event ee;
@@ -126,7 +126,7 @@ static int aeApiAddEvent(aeEventLoop *eventLoop, int fd, int mask) {
 
 /*
  * 从 fd 中删除给定事件
- */
+ *///////EPOLL_CTL_MOD/EPOLL_CTL_DEL
 static void aeApiDelEvent(aeEventLoop *eventLoop, int fd, int delmask) {
     aeApiState *state = eventLoop->apidata;
     struct epoll_event ee;
@@ -149,7 +149,7 @@ static void aeApiDelEvent(aeEventLoop *eventLoop, int fd, int delmask) {
 
 /*
  * 获取可执行事件
- */
+ *////
 static int aeApiPoll(aeEventLoop *eventLoop, struct timeval *tvp) {
     aeApiState *state = eventLoop->apidata;
     int retval, numevents = 0;

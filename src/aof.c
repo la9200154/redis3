@@ -86,7 +86,7 @@ typedef struct aofrwblock {
  * 释放旧的 AOF 重写缓存，并初始化一个新的 AOF 缓存。
  *
  * 这个函数也可以单纯地用于 AOF 重写缓存的初始化。
- */
+ *///////
 void aofRewriteBufferReset(void) {
 
     // 释放旧有的缓存（链表）
@@ -101,7 +101,7 @@ void aofRewriteBufferReset(void) {
 /* Return the current size of the AOF rerwite buffer. 
  *
  * 返回 AOF 重写缓存当前的大小
- */
+ *////
 unsigned long aofRewriteBufferSize(void) {
 
     // 取出链表中最后的缓存块
@@ -123,7 +123,7 @@ unsigned long aofRewriteBufferSize(void) {
  *
  * 将字符数组 s 追加到 AOF 缓存的末尾，
  * 如果有需要的话，分配一个新的缓存块。
- */
+ *///
 void aofRewriteBufferAppend(unsigned char *s, unsigned long len) {
 
     // 指向最后一个缓存块
@@ -184,7 +184,7 @@ void aofRewriteBufferAppend(unsigned char *s, unsigned long len) {
  *
  * 如果没有 short write 或者其他错误发生，那么返回写入的字节数量，
  * 否则，返回 -1 。
- */
+ *///////
 ssize_t aofRewriteBufferWrite(int fd) {
     listNode *ln;
     listIter li;
@@ -221,7 +221,7 @@ ssize_t aofRewriteBufferWrite(int fd) {
  * file descriptor (the one of the AOF file) in another thread. 
  *
  * 在另一个线程中，对给定的描述符 fd （指向 AOF 文件）执行一个后台 fsync() 操作。
- */
+ *////////
 void aof_background_fsync(int fd) {
     bioCreateBackgroundJob(REDIS_BIO_AOF_FSYNC,(void*)(long)fd,NULL,NULL);
 }
@@ -230,7 +230,7 @@ void aof_background_fsync(int fd) {
  * at runtime using the CONFIG command. 
  *
  * 在用户通过 CONFIG 命令在运行时关闭 AOF 持久化时调用
- */
+ */////
 void stopAppendOnly(void) {
 
     // AOF 必须正在启用，才能调用这个函数
@@ -281,7 +281,7 @@ void stopAppendOnly(void) {
  *
  * 当用户在运行时使用 CONFIG 命令，
  * 从 appendonly no 切换到 appendonly yes 时执行
- */
+ *//////
 int startAppendOnly(void) {
 
     // 将开始时间设为 AOF 最后一次 fsync 时间 
@@ -355,7 +355,7 @@ int startAppendOnly(void) {
  * 程序都直接进行写入。
  */
 #define AOF_WRITE_LOG_ERROR_RATE 30 /* Seconds between errors logging. */
-void flushAppendOnlyFile(int force) {
+void flushAppendOnlyFile(int force) {////
     ssize_t nwritten;
     int sync_in_progress = 0;
 

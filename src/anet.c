@@ -48,8 +48,8 @@
 #include "anet.h"
 
 /*
- * æ‰“å°é”™è¯¯ä¿¡æ¯
- */
+ * ´òÓ¡´íÎóĞÅÏ¢
+ */////
 static void anetSetError(char *err, const char *fmt, ...)
 {
     va_list ap;
@@ -61,8 +61,8 @@ static void anetSetError(char *err, const char *fmt, ...)
 }
 
 /*
- * å°† fd è®¾ç½®ä¸ºéé˜»å¡æ¨¡å¼ï¼ˆO_NONBLOCKï¼‰
- */
+ * ½« fd ÉèÖÃÎª·Ç×èÈûÄ£Ê½£¨O_NONBLOCK£©
+ *////
 int anetNonBlock(char *err, int fd)
 {
     int flags;
@@ -85,8 +85,8 @@ int anetNonBlock(char *err, int fd)
  * is only used for Linux as we are using Linux-specific APIs to set
  * the probe send time, interval, and count.
  *
- * ä¿®æ”¹ TCP è¿æ¥çš„ keep alive é€‰é¡¹
- */
+ * ĞŞ¸Ä TCP Á¬½ÓµÄ keep alive Ñ¡Ïî
+ *////
 int anetKeepAlive(char *err, int fd, int interval)
 {
     int val = 1;
@@ -132,8 +132,8 @@ int anetKeepAlive(char *err, int fd, int interval)
 }
 
 /*
- * æ‰“å¼€æˆ–å…³é—­ Nagle ç®—æ³•
- */
+ * ´ò¿ª»ò¹Ø±Õ Nagle Ëã·¨
+ *////
 static int anetSetTcpNoDelay(char *err, int fd, int val)
 {
     if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &val, sizeof(val)) == -1)
@@ -145,24 +145,24 @@ static int anetSetTcpNoDelay(char *err, int fd, int val)
 }
 
 /*
- * ç¦ç”¨ Nagle ç®—æ³•
- */
+ * ½ûÓÃ Nagle Ëã·¨
+ *////
 int anetEnableTcpNoDelay(char *err, int fd)
 {
     return anetSetTcpNoDelay(err, fd, 1);
 }
 
 /*
- * å¯ç”¨ Nagle ç®—æ³•
- */
+ * ÆôÓÃ Nagle Ëã·¨
+ *////
 int anetDisableTcpNoDelay(char *err, int fd) 
 {
     return anetSetTcpNoDelay(err, fd, 0);
 }
 
 /*
- * è®¾ç½® socket çš„æœ€å¤§å‘é€ buffer å­—èŠ‚æ•°
- */
+ * ÉèÖÃ socket µÄ×î´ó·¢ËÍ buffer ×Ö½ÚÊı
+ *////
 int anetSetSendBuffer(char *err, int fd, int buffsize)
 {
     if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &buffsize, sizeof(buffsize)) == -1)
@@ -174,8 +174,8 @@ int anetSetSendBuffer(char *err, int fd, int buffsize)
 }
 
 /*
- * å¼€å¯ TCP çš„ keep alive é€‰é¡¹
- */
+ * ¿ªÆô TCP µÄ keep alive Ñ¡Ïî
+ *////
 int anetTcpKeepAlive(char *err, int fd)
 {
     int yes = 1;
@@ -193,7 +193,7 @@ int anetTcpKeepAlive(char *err, int fd)
  * If flags is set to ANET_IP_ONLY the function only resolves hostnames
  * that are actually already IPv4 or IPv6 addresses. This turns the function
  * into a validating / normalizing function. */
-// è§£é‡Š host çš„åœ°å€ï¼Œå¹¶ä¿å­˜åˆ° ipbuf ä¸­
+// ½âÊÍ host µÄµØÖ·£¬²¢±£´æµ½ ipbuf ÖĞ///
 int anetGenericResolve(char *err, char *host, char *ipbuf, size_t ipbuf_len,
                        int flags)
 {
@@ -220,16 +220,16 @@ int anetGenericResolve(char *err, char *host, char *ipbuf, size_t ipbuf_len,
     freeaddrinfo(info);
     return ANET_OK;
 }
-
+////
 int anetResolve(char *err, char *host, char *ipbuf, size_t ipbuf_len) {
     return anetGenericResolve(err,host,ipbuf,ipbuf_len,ANET_NONE);
 }
-
+/////
 int anetResolveIP(char *err, char *host, char *ipbuf, size_t ipbuf_len) {
     return anetGenericResolve(err,host,ipbuf,ipbuf_len,ANET_IP_ONLY);
 }
 
-// è®¾ç½®åœ°å€ä¸ºå¯é‡ç”¨
+// ÉèÖÃµØÖ·Îª¿ÉÖØÓÃ///
 static int anetSetReuseAddr(char *err, int fd) {
     int yes = 1;
     /* Make sure connection-intensive things like the redis benckmark
@@ -242,8 +242,8 @@ static int anetSetReuseAddr(char *err, int fd) {
 }
 
 /*
- * åˆ›å»ºå¹¶è¿”å› socket
- */
+ * ´´½¨²¢·µ»Ø socket
+ */////
 static int anetCreateSocket(char *err, int domain) {
     int s;
     if ((s = socket(domain, SOCK_STREAM, 0)) == -1) {
@@ -260,7 +260,7 @@ static int anetCreateSocket(char *err, int domain) {
     return s;
 }
 
-// é€šç”¨è¿æ¥åˆ›å»ºå‡½æ•°ï¼Œè¢«å…¶ä»–é«˜å±‚å‡½æ•°æ‰€è°ƒç”¨
+// Í¨ÓÃÁ¬½Ó´´½¨º¯Êı£¬±»ÆäËû¸ß²ãº¯ÊıËùµ÷ÓÃ///
 #define ANET_CONNECT_NONE 0
 #define ANET_CONNECT_NONBLOCK 1
 static int anetTcpGenericConnect(char *err, char *addr, int port,
@@ -334,26 +334,26 @@ end:
 }
 
 /*
- * åˆ›å»ºé˜»å¡ TCP è¿æ¥
- */
+ * ´´½¨×èÈû TCP Á¬½Ó
+ */////
 int anetTcpConnect(char *err, char *addr, int port)
 {
     return anetTcpGenericConnect(err,addr,port,NULL,ANET_CONNECT_NONE);
 }
 
 /*
- * åˆ›å»ºéé˜»å¡ TCP è¿æ¥
- */
+ * ´´½¨·Ç×èÈû TCP Á¬½Ó
+ */////
 int anetTcpNonBlockConnect(char *err, char *addr, int port)
 {
     return anetTcpGenericConnect(err,addr,port,NULL,ANET_CONNECT_NONBLOCK);
 }
-
+////
 int anetTcpNonBlockBindConnect(char *err, char *addr, int port, char *source_addr)
 {
     return anetTcpGenericConnect(err,addr,port,source_addr,ANET_CONNECT_NONBLOCK);
 }
-
+///
 int anetUnixGenericConnect(char *err, char *path, int flags)
 {
     int s;
@@ -381,16 +381,16 @@ int anetUnixGenericConnect(char *err, char *path, int flags)
 }
 
 /*
- * åˆ›å»ºé˜»å¡æœ¬åœ°è¿æ¥
- */
+ * ´´½¨×èÈû±¾µØÁ¬½Ó
+ */////
 int anetUnixConnect(char *err, char *path)
 {
     return anetUnixGenericConnect(err,path,ANET_CONNECT_NONE);
 }
 
 /*
- * åˆ›å»ºéé˜»å¡æœ¬åœ°è¿æ¥
- */
+ * ´´½¨·Ç×èÈû±¾µØÁ¬½Ó
+ */////
 int anetUnixNonBlockConnect(char *err, char *path)
 {
     return anetUnixGenericConnect(err,path,ANET_CONNECT_NONBLOCK);
@@ -399,8 +399,8 @@ int anetUnixNonBlockConnect(char *err, char *path)
 /* Like read(2) but make sure 'count' is read before to return
  * (unless error or EOF condition is encountered) */
 /*
- * å¸¦ short count å¤„ç†çš„è¯»å–å‡½æ•°
- */
+ * ´ø short count ´¦ÀíµÄ¶ÁÈ¡º¯Êı
+ */////
 int anetRead(int fd, char *buf, int count)
 {
     int nread, totlen = 0;
@@ -417,8 +417,8 @@ int anetRead(int fd, char *buf, int count)
 /* Like write(2) but make sure 'count' is read before to return
  * (unless error is encountered) */
 /*
- * å¸¦ short count å¤„ç†çš„å†™å…¥å‡½æ•°
- */
+ * ´ø short count ´¦ÀíµÄĞ´Èëº¯Êı
+ */////
 int anetWrite(int fd, char *buf, int count)
 {
     int nwritten, totlen = 0;
@@ -433,7 +433,7 @@ int anetWrite(int fd, char *buf, int count)
 }
 
 /*
- * ç»‘å®šå¹¶åˆ›å»ºç›‘å¬å¥—æ¥å­—
+ * °ó¶¨²¢´´½¨¼àÌıÌ×½Ó×Ö
  */
 static int anetListen(char *err, int s, struct sockaddr *sa, socklen_t len, int backlog) {
     if (bind(s,sa,len) == -1) {
@@ -449,7 +449,7 @@ static int anetListen(char *err, int s, struct sockaddr *sa, socklen_t len, int 
     }
     return ANET_OK;
 }
-
+////
 static int anetV6Only(char *err, int s) {
     int yes = 1;
     if (setsockopt(s,IPPROTO_IPV6,IPV6_V6ONLY,&yes,sizeof(yes)) == -1) {
@@ -459,7 +459,7 @@ static int anetV6Only(char *err, int s) {
     }
     return ANET_OK;
 }
-
+////////////
 static int _anetTcpServer(char *err, int port, char *bindaddr, int af, int backlog)
 {
     int s, rv;
@@ -496,7 +496,7 @@ end:
     freeaddrinfo(servinfo);
     return s;
 }
-
+///
 int anetTcpServer(char *err, int port, char *bindaddr, int backlog)
 {
     return _anetTcpServer(err, port, bindaddr, AF_INET, backlog);
@@ -508,8 +508,8 @@ int anetTcp6Server(char *err, int port, char *bindaddr, int backlog)
 }
 
 /*
- * åˆ›å»ºä¸€ä¸ªæœ¬åœ°è¿æ¥ç”¨çš„æœåŠ¡å™¨ç›‘å¬å¥—æ¥å­—
- */
+ * ´´½¨Ò»¸ö±¾µØÁ¬½ÓÓÃµÄ·şÎñÆ÷¼àÌıÌ×½Ó×Ö
+ */////
 int anetUnixServer(char *err, char *path, mode_t perm, int backlog)
 {
     int s;
@@ -527,7 +527,7 @@ int anetUnixServer(char *err, char *path, mode_t perm, int backlog)
         chmod(sa.sun_path, perm);
     return s;
 }
-
+/////
 static int anetGenericAccept(char *err, int s, struct sockaddr *sa, socklen_t *len) {
     int fd;
     while(1) {
@@ -546,8 +546,8 @@ static int anetGenericAccept(char *err, int s, struct sockaddr *sa, socklen_t *l
 }
 
 /*
- * TCP è¿æ¥ accept å‡½æ•°
- */
+ * TCP Á¬½Ó accept º¯Êı
+ */////
 int anetTcpAccept(char *err, int s, char *ip, size_t ip_len, int *port) {
     int fd;
     struct sockaddr_storage sa;
@@ -568,8 +568,8 @@ int anetTcpAccept(char *err, int s, char *ip, size_t ip_len, int *port) {
 }
 
 /*
- * æœ¬åœ°è¿æ¥ accept å‡½æ•°
- */
+ * ±¾µØÁ¬½Ó accept º¯Êı
+ */////
 int anetUnixAccept(char *err, int s) {
     int fd;
     struct sockaddr_un sa;
@@ -581,8 +581,8 @@ int anetUnixAccept(char *err, int s) {
 }
 
 /*
- * è·å–è¿æ¥å®¢æˆ·ç«¯çš„ IP å’Œç«¯å£å·
- */
+ * »ñÈ¡Á¬½Ó¿Í»§¶ËµÄ IP ºÍ¶Ë¿ÚºÅ
+ *////
 int anetPeerToString(int fd, char *ip, size_t ip_len, int *port) {
     struct sockaddr_storage sa;
     socklen_t salen = sizeof(sa);
@@ -606,8 +606,8 @@ int anetPeerToString(int fd, char *ip, size_t ip_len, int *port) {
 }
 
 /*
- * è·å–æœåŠ¡å™¨æœ¬æœºçš„ IP å’Œç«¯å£å·
- */
+ * »ñÈ¡·şÎñÆ÷±¾»úµÄ IP ºÍ¶Ë¿ÚºÅ
+ *////
 int anetSockName(int fd, char *ip, size_t ip_len, int *port) {
     struct sockaddr_storage sa;
     socklen_t salen = sizeof(sa);

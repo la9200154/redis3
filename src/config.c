@@ -92,15 +92,15 @@ void loadServerConfigFromString(char *config) {
         int argc;
 
         linenum = i+1;
-        // ç§»é™¤å­—ç¬¦ä¸²çš„å‰ç½®ç©ºç™½å’Œåç¼€ç©ºç™½
+        // ÒÆ³ı×Ö·û´®µÄÇ°ÖÃ¿Õ°×ºÍºó×º¿Õ°×
         lines[i] = sdstrim(lines[i]," \t\r\n");
 
         /* Skip comments and blank lines */
-        // è·³è¿‡ç©ºç™½è¡Œ
+        // Ìø¹ı¿Õ°×ĞĞ
         if (lines[i][0] == '#' || lines[i][0] == '\0') continue;
 
         /* Split into arguments */
-        // å°†å­—ç¬¦ä¸²åˆ†å‰²æˆå¤šä¸ªå‚æ•°
+        // ½«×Ö·û´®·Ö¸î³É¶à¸ö²ÎÊı
         argv = sdssplitargs(lines[i],&argc);
         if (argv == NULL) {
             err = "Unbalanced quotes in configuration line";
@@ -108,14 +108,14 @@ void loadServerConfigFromString(char *config) {
         }
 
         /* Skip this line if the resulting command vector is empty. */
-        // è·³è¿‡ç©ºç™½å‚æ•°
+        // Ìø¹ı¿Õ°×²ÎÊı
         if (argc == 0) {
             sdsfreesplitres(argv,argc);
             continue;
         }
 
-        // å°†é€‰é¡¹åå­—è½¬æ¢æˆå°å†™
-        // ä¾‹å¦‚ TIMEOUT è½¬æ¢æˆ timeout
+        // ½«Ñ¡ÏîÃû×Ö×ª»»³ÉĞ¡Ğ´
+        // ÀıÈç TIMEOUT ×ª»»³É timeout
         sdstolower(argv[0]);
 
         /* Execute config directives */
@@ -501,14 +501,14 @@ void loadServerConfigFromString(char *config) {
         } else if (!strcasecmp(argv[0],"sentinel")) {
             /* argc == 1 is handled by main() as we need to enter the sentinel
              * mode ASAP. */
-            // å¦‚æœ SENTINEL å‘½ä»¤ä¸ä¸ºç©ºï¼Œé‚£ä¹ˆæ‰§è¡Œä»¥ä¸‹ä»£ç 
+            // Èç¹û SENTINEL ÃüÁî²»Îª¿Õ£¬ÄÇÃ´Ö´ĞĞÒÔÏÂ´úÂë
             if (argc != 1) {
-                // å¦‚æœ SENTINEL æ¨¡å¼æœªå¼€å¯ï¼Œé‚£ä¹ˆå‡ºé”™
+                // Èç¹û SENTINEL Ä£Ê½Î´¿ªÆô£¬ÄÇÃ´³ö´í
                 if (!server.sentinel_mode) {
                     err = "sentinel directive while not in sentinel mode";
                     goto loaderr;
                 }
-                // è½½å…¥ SENTINEL ç›¸å…³é€‰é¡¹
+                // ÔØÈë SENTINEL Ïà¹ØÑ¡Ïî
                 err = sentinelHandleConfiguration(argv+1,argc-1);
                 if (err) goto loaderr;
             }
@@ -539,26 +539,26 @@ loaderr:
 
 /* Load the server configuration from the specified filename.
  *
- * ä»ç»™å®šæ–‡ä»¶ä¸­è½½å…¥æœåŠ¡å™¨é…ç½®ã€‚
+ * ´Ó¸ø¶¨ÎÄ¼şÖĞÔØÈë·şÎñÆ÷ÅäÖÃ¡£
  *
  * The function appends the additional configuration directives stored
  * in the 'options' string to the config file before loading.
  *
- * options å­—ç¬¦ä¸²ä¼šè¢«è¿½åŠ åˆ°æ–‡ä»¶æ‰€è½½å…¥çš„å†…å®¹çš„åé¢ã€‚
+ * options ×Ö·û´®»á±»×·¼Óµ½ÎÄ¼şËùÔØÈëµÄÄÚÈİµÄºóÃæ¡£
  *
  * Both filename and options can be NULL, in such a case are considered
  * empty. This way loadServerConfig can be used to just load a file or
  * just load a string. 
  *
- * filename å’Œ options éƒ½å¯ä»¥æ˜¯ NULL ï¼Œåœ¨è¿™ç§æƒ…å†µä¸‹ï¼Œ
- * æœåŠ¡å™¨é…ç½®æ–‡ä»¶è§†ä¸ºç©ºæ–‡ä»¶ã€‚
+ * filename ºÍ options ¶¼¿ÉÒÔÊÇ NULL £¬ÔÚÕâÖÖÇé¿öÏÂ£¬
+ * ·şÎñÆ÷ÅäÖÃÎÄ¼şÊÓÎª¿ÕÎÄ¼ş¡£
  */
 void loadServerConfig(char *filename, char *options) {
     sds config = sdsempty();
     char buf[REDIS_CONFIGLINE_MAX+1];
 
     /* Load the file content */
-    // è½½å…¥æ–‡ä»¶å†…å®¹
+    // ÔØÈëÎÄ¼şÄÚÈİ
     if (filename) {
         FILE *fp;
 
@@ -577,13 +577,13 @@ void loadServerConfig(char *filename, char *options) {
     }
 
     /* Append the additional options */
-    // è¿½åŠ  options å­—ç¬¦ä¸²åˆ°å†…å®¹çš„æœ«å°¾
+    // ×·¼Ó options ×Ö·û´®µ½ÄÚÈİµÄÄ©Î²
     if (options) {
         config = sdscat(config,"\n");
         config = sdscat(config,options);
     }
 
-    // æ ¹æ®å­—ç¬¦ä¸²å†…å®¹ï¼Œè®¾ç½®æœåŠ¡å™¨é…ç½®
+    // ¸ù¾İ×Ö·û´®ÄÚÈİ£¬ÉèÖÃ·şÎñÆ÷ÅäÖÃ
     loadServerConfigFromString(config);
 
     sdsfree(config);

@@ -37,7 +37,7 @@ typedef struct aeApiState {
      * FD sets after select(). */
     fd_set _rfds, _wfds;
 } aeApiState;
-
+///FD_ZERO
 static int aeApiCreate(aeEventLoop *eventLoop) {
     aeApiState *state = zmalloc(sizeof(aeApiState));
 
@@ -47,17 +47,17 @@ static int aeApiCreate(aeEventLoop *eventLoop) {
     eventLoop->apidata = state;
     return 0;
 }
-
+/////FD_SETSIZE
 static int aeApiResize(aeEventLoop *eventLoop, int setsize) {
     /* Just ensure we have enough room in the fd_set type. */
     if (setsize >= FD_SETSIZE) return -1;
     return 0;
 }
-
+/////
 static void aeApiFree(aeEventLoop *eventLoop) {
     zfree(eventLoop->apidata);
 }
-
+//////FD_SET
 static int aeApiAddEvent(aeEventLoop *eventLoop, int fd, int mask) {
     aeApiState *state = eventLoop->apidata;
 
@@ -65,14 +65,14 @@ static int aeApiAddEvent(aeEventLoop *eventLoop, int fd, int mask) {
     if (mask & AE_WRITABLE) FD_SET(fd,&state->wfds);
     return 0;
 }
-
+/////FD_CLR
 static void aeApiDelEvent(aeEventLoop *eventLoop, int fd, int mask) {
     aeApiState *state = eventLoop->apidata;
 
     if (mask & AE_READABLE) FD_CLR(fd,&state->rfds);
     if (mask & AE_WRITABLE) FD_CLR(fd,&state->wfds);
 }
-
+////
 static int aeApiPoll(aeEventLoop *eventLoop, struct timeval *tvp) {
     aeApiState *state = eventLoop->apidata;
     int retval, j, numevents = 0;

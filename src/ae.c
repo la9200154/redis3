@@ -62,7 +62,7 @@
 
 /*
  * 初始化事件处理器状态
- */
+ *//////
 aeEventLoop *aeCreateEventLoop(int setsize) {
     aeEventLoop *eventLoop;
     int i;
@@ -107,7 +107,7 @@ err:
 }
 
 /* Return the current set size. */
-// 返回当前事件槽大小
+// 返回当前事件槽大小////
 int aeGetSetSize(aeEventLoop *eventLoop) {
     return eventLoop->setsize;
 }
@@ -127,7 +127,7 @@ int aeGetSetSize(aeEventLoop *eventLoop) {
  * Otherwise AE_OK is returned and the operation is successful. 
  *
  * 否则，执行大小调整操作，并返回 AE_OK 。
- */
+ */////////
 int aeResizeSetSize(aeEventLoop *eventLoop, int setsize) {
     int i;
 
@@ -148,7 +148,7 @@ int aeResizeSetSize(aeEventLoop *eventLoop, int setsize) {
 
 /*
  * 删除事件处理器
- */
+ */////
 void aeDeleteEventLoop(aeEventLoop *eventLoop) {
     aeApiFree(eventLoop);
     zfree(eventLoop->events);
@@ -158,7 +158,7 @@ void aeDeleteEventLoop(aeEventLoop *eventLoop) {
 
 /*
  * 停止事件处理器
- */
+ *//////
 void aeStop(aeEventLoop *eventLoop) {
     eventLoop->stop = 1;
 }
@@ -166,7 +166,7 @@ void aeStop(aeEventLoop *eventLoop) {
 /*
  * 根据 mask 参数的值，监听 fd 文件的状态，
  * 当 fd 可用时，执行 proc 函数
- */
+ *//////
 int aeCreateFileEvent(aeEventLoop *eventLoop, int fd, int mask,
         aeFileProc *proc, void *clientData)
 {
@@ -229,7 +229,7 @@ void aeDeleteFileEvent(aeEventLoop *eventLoop, int fd, int mask)
 
 /*
  * 获取给定 fd 正在监听的事件类型
- */
+ *//////
 int aeGetFileEvents(aeEventLoop *eventLoop, int fd) {
     if (fd >= eventLoop->setsize) return 0;
     aeFileEvent *fe = &eventLoop->events[fd];
@@ -240,7 +240,7 @@ int aeGetFileEvents(aeEventLoop *eventLoop, int fd) {
 /*
  * 取出当前时间的秒和毫秒，
  * 并分别将它们保存到 seconds 和 milliseconds 参数中
- */
+ *///////
 static void aeGetTime(long *seconds, long *milliseconds)
 {
     struct timeval tv;
@@ -253,7 +253,7 @@ static void aeGetTime(long *seconds, long *milliseconds)
 /*
  * 在当前时间上加上 milliseconds 毫秒，
  * 并且将加上之后的秒数和毫秒数分别保存在 sec 和 ms 指针中。
- */
+ *//////
 static void aeAddMillisecondsToNow(long long milliseconds, long *sec, long *ms) {
     long cur_sec, cur_ms, when_sec, when_ms;
 
@@ -279,7 +279,7 @@ static void aeAddMillisecondsToNow(long long milliseconds, long *sec, long *ms) 
 
 /*
  * 创建时间事件
- */
+ *///////
 long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
         aeTimeProc *proc, void *clientData,
         aeEventFinalizerProc *finalizerProc)
@@ -313,7 +313,7 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
 
 /*
  * 删除给定 id 的时间事件
- */
+ *//////
 int aeDeleteTimeEvent(aeEventLoop *eventLoop, long long id)
 {
     aeTimeEvent *te, *prev = NULL;
@@ -325,7 +325,7 @@ int aeDeleteTimeEvent(aeEventLoop *eventLoop, long long id)
         // 发现目标事件，删除
         if (te->id == id) {
 
-            if (prev == NULL)
+            if (prev == NULL)//第一个节点
                 eventLoop->timeEventHead = te->next;
             else
                 prev->next = te->next;
@@ -358,7 +358,7 @@ int aeDeleteTimeEvent(aeEventLoop *eventLoop, long long id)
  * 2) Use a skiplist to have this operation as O(1) and insertion as O(log(N)).
  */
 // 寻找里目前时间最近的时间事件
-// 因为链表是乱序的，所以查找复杂度为 O（N）
+// 因为链表是乱序的，所以查找复杂度为 O（N）///
 static aeTimeEvent *aeSearchNearestTimer(aeEventLoop *eventLoop)
 {
     aeTimeEvent *te = eventLoop->timeEventHead;
@@ -377,7 +377,7 @@ static aeTimeEvent *aeSearchNearestTimer(aeEventLoop *eventLoop)
 /* Process time events
  *
  * 处理所有已到达的时间事件
- */
+ */////
 static int processTimeEvents(aeEventLoop *eventLoop) {
     int processed = 0;
     aeTimeEvent *te;
@@ -494,7 +494,7 @@ static int processTimeEvents(aeEventLoop *eventLoop) {
  *
  * The function returns the number of events processed. 
  * 函数的返回值为已处理事件的数量
- */
+ */////
 int aeProcessEvents(aeEventLoop *eventLoop, int flags)
 {
     int processed = 0, numevents;
@@ -597,7 +597,7 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
  * writable/readable/exception 
  *
  * 在给定毫秒内等待，直到 fd 变成可写、可读或异常
- */
+ */////
 int aeWait(int fd, int mask, long long milliseconds) {
     struct pollfd pfd;
     int retmask = 0, retval;
@@ -620,7 +620,7 @@ int aeWait(int fd, int mask, long long milliseconds) {
 
 /*
  * 事件处理器的主循环
- */
+ *////
 void aeMain(aeEventLoop *eventLoop) {
 
     eventLoop->stop = 0;
@@ -638,14 +638,14 @@ void aeMain(aeEventLoop *eventLoop) {
 
 /*
  * 返回所使用的多路复用库的名称
- */
+ *////
 char *aeGetApiName(void) {
     return aeApiName();
 }
 
 /*
  * 设置处理事件前需要被执行的函数
- */
+ *////
 void aeSetBeforeSleepProc(aeEventLoop *eventLoop, aeBeforeSleepProc *beforesleep) {
     eventLoop->beforesleep = beforesleep;
 }

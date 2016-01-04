@@ -135,7 +135,7 @@ void *bioProcessBackgroundJobs(void *arg);
 /* Initialize the background system, spawning the thread. 
  *
  * 初始化后台任务系统，生成线程
- */
+ *////
 void bioInit(void) {
     pthread_attr_t attr;
     pthread_t thread;
@@ -181,7 +181,7 @@ void bioInit(void) {
 
 /*
  * 创建后台任务
- */
+ *////
 void bioCreateBackgroundJob(int type, void *arg1, void *arg2, void *arg3) {
     struct bio_job *job = zmalloc(sizeof(*job));
 
@@ -203,7 +203,7 @@ void bioCreateBackgroundJob(int type, void *arg1, void *arg2, void *arg3) {
 
 /*
  * 处理后台任务
- */
+ */////
 void *bioProcessBackgroundJobs(void *arg) {
     struct bio_job *job;
     unsigned long type = (unsigned long) arg;
@@ -269,7 +269,7 @@ void *bioProcessBackgroundJobs(void *arg) {
 /* Return the number of pending jobs of the specified type. 
  *
  * 返回等待中的 type 类型的工作的数量
- */
+ */////
 unsigned long long bioPendingJobsOfType(int type) {
     unsigned long long val;
 
@@ -287,7 +287,7 @@ unsigned long long bioPendingJobsOfType(int type) {
  *
  * Currently Redis does this only on crash (for instance on SIGSEGV) in order
  * to perform a fast memory check without other threads messing with memory. 
- */
+ *////
 void bioKillThreads(void) {
     int err, j;
 
