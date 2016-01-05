@@ -80,7 +80,7 @@ static int _dictInit(dict *ht, dictType *type, void *privDataPtr);
 /* -------------------------- hash functions -------------------------------- */
 
 /* Thomas Wang's 32 bit Mix Function */
-unsigned int dictIntHashFunction(unsigned int key)
+unsigned int dictIntHashFunction(unsigned int key)///
 {
     key += ~(key << 15);
     key ^=  (key >> 10);
@@ -92,18 +92,18 @@ unsigned int dictIntHashFunction(unsigned int key)
 }
 
 /* Identity hash function for integer keys */
-unsigned int dictIdentityHashFunction(unsigned int key)
+unsigned int dictIdentityHashFunction(unsigned int key)///
 {
     return key;
 }
 
 static uint32_t dict_hash_function_seed = 5381;
 ///
-void dictSetHashFunctionSeed(uint32_t seed) {
+void dictSetHashFunctionSeed(uint32_t seed) {///
     dict_hash_function_seed = seed;
 }
 
-uint32_t dictGetHashFunctionSeed(void) {
+uint32_t dictGetHashFunctionSeed(void) {/////
     return dict_hash_function_seed;
 }
 
@@ -118,7 +118,7 @@ uint32_t dictGetHashFunctionSeed(void) {
  * 2. It will not produce the same results on little-endian and big-endian
  *    machines.
  */
-unsigned int dictGenHashFunction(const void *key, int len) {
+unsigned int dictGenHashFunction(const void *key, int len) {/////
     /* 'm' and 'r' are mixing constants generated offline.
      They're not really 'magic', they just happen to work well.  */
     uint32_t seed = dict_hash_function_seed;
@@ -245,7 +245,7 @@ int _dictInit(dict *d, dictType *type,
  * 成功创建体积更小的 ht[1] ，可以开始 resize 时，返回 DICT_OK。
  *
  * T = O(N)
- */
+ *//////
 int dictResize(dict *d)
 {
     int minimal;
@@ -276,7 +276,7 @@ int dictResize(dict *d)
  * 成功创建 0 号哈希表，或者 1 号哈希表时，返回 DICT_OK 。
  *
  * T = O(N)
- */
+ */////////
 int dictExpand(dict *d, unsigned long size)
 {
     // 新哈希表
@@ -350,7 +350,7 @@ int dictExpand(dict *d, unsigned long size)
  * 被 rehash 的桶里的所有节点都会被移动到新哈希表。
  *
  * T = O(N)
- */
+ */////////
 int dictRehash(dict *d, int n) {
 
     // 只可以在 rehash 进行中时执行
@@ -424,7 +424,7 @@ int dictRehash(dict *d, int n) {
  * 返回以毫秒为单位的 UNIX 时间戳
  *
  * T = O(1)
- */
+ *///////
 long long timeInMilliseconds(void) {
     struct timeval tv;
 
@@ -437,7 +437,7 @@ long long timeInMilliseconds(void) {
  * 在给定毫秒数内，以 100 步为单位，对字典进行 rehash 。
  *
  * T = O(N)
- */
+ */////
 int dictRehashMilliseconds(dict *d, int ms) {
     // 记录开始时间
     long long start = timeInMilliseconds();
@@ -470,7 +470,7 @@ int dictRehashMilliseconds(dict *d, int ms) {
  * 它可以让字典在被使用的同时进行 rehash 。
  *
  * T = O(1)
- */
+ */////
 static void _dictRehashStep(dict *d) {
     if (d->iterators == 0) dictRehash(d,1);
 }
@@ -578,7 +578,7 @@ dictEntry *dictAddRaw(dict *d, void *key)
  * 如果键值对是通过对原有的键值对更新得来的，那么返回 0 。
  *
  * T = O(N)
- */
+ *////
 int dictReplace(dict *d, void *key, void *val)
 {
     dictEntry *entry, auxentry;
@@ -628,7 +628,7 @@ int dictReplace(dict *d, void *key, void *val)
  * dictAddRaw() 都总是返回包含给定 key 的字典节点。
  *
  * T = O(N)
- */
+ *////
 dictEntry *dictReplaceRaw(dict *d, void *key) {
     
     // 使用 key 在字典中查找节点
@@ -650,7 +650,7 @@ dictEntry *dictReplaceRaw(dict *d, void *key) {
  * 找到并成功删除返回 DICT_OK ，没找到则返回 DICT_ERR
  *
  * T = O(1)
- */
+ *////
 static int dictGenericDelete(dict *d, const void *key, int nofree)
 {
     unsigned int h, idx;
@@ -725,7 +725,7 @@ static int dictGenericDelete(dict *d, const void *key, int nofree)
  *
  * 找到并成功删除返回 DICT_OK ，没找到则返回 DICT_ERR
  * T = O(1)
- */
+ *////
 int dictDelete(dict *ht, const void *key) {
     return dictGenericDelete(ht,key,0);
 }
@@ -737,7 +737,7 @@ int dictDelete(dict *ht, const void *key) {
  *
  * 找到并成功删除返回 DICT_OK ，没找到则返回 DICT_ERR
  * T = O(1)
- */
+ */////
 int dictDeleteNoFree(dict *ht, const void *key) {
     return dictGenericDelete(ht,key,1);
 }
@@ -747,7 +747,7 @@ int dictDeleteNoFree(dict *ht, const void *key) {
  * 删除哈希表上的所有节点，并重置哈希表的各项属性
  *
  * T = O(N)
- */
+ *//////
 int _dictClear(dict *d, dictht *ht, void(callback)(void *)) {
     unsigned long i;
 
@@ -797,7 +797,7 @@ int _dictClear(dict *d, dictht *ht, void(callback)(void *)) {
  * 删除并释放整个字典
  *
  * T = O(N)
- */
+ *////
 void dictRelease(dict *d)
 {
     // 删除并清空两个哈希表
@@ -813,7 +813,7 @@ void dictRelease(dict *d)
  * 找到返回节点，找不到返回 NULL
  *
  * T = O(1)
- */
+ *////
 dictEntry *dictFind(dict *d, const void *key)
 {
     dictEntry *he;
@@ -862,7 +862,7 @@ dictEntry *dictFind(dict *d, const void *key)
  * 否则返回 NULL
  *
  * T = O(1)
- */
+ *////
 void *dictFetchValue(dict *d, const void *key) {
     dictEntry *he;
 
@@ -914,7 +914,7 @@ long long dictFingerprint(dict *d) {
  * 创建并返回给定字典的不安全迭代器
  *
  * T = O(1)
- */
+ *////
 dictIterator *dictGetIterator(dict *d)
 {
     dictIterator *iter = zmalloc(sizeof(*iter));
@@ -933,7 +933,7 @@ dictIterator *dictGetIterator(dict *d)
  * 创建并返回给定节点的安全迭代器
  *
  * T = O(1)
- */
+ */////
 dictIterator *dictGetSafeIterator(dict *d) {
     dictIterator *i = dictGetIterator(d);
 
@@ -1016,7 +1016,7 @@ dictEntry *dictNext(dictIterator *iter)
  * 释放给定字典迭代器
  *
  * T = O(1)
- */
+ */////
 void dictReleaseIterator(dictIterator *iter)
 {
 
@@ -1041,7 +1041,7 @@ void dictReleaseIterator(dictIterator *iter)
  * 如果字典为空，返回 NULL 。
  *
  * T = O(N)
-*/
+*//////
 dictEntry *dictGetRandomKey(dict *d)
 {
     dictEntry *he, *orighe;
@@ -1296,7 +1296,7 @@ static unsigned long rev(unsigned long v) {
  *    comment is supposed to help.
  *    对游标进行翻转（reverse）的原因初看上去比较难以理解，
  *    不过阅读这份注释应该会有所帮助。
- */
+ */////
 unsigned long dictScan(dict *d,
                        unsigned long v,
                        dictScanFunction *fn,
@@ -1393,7 +1393,7 @@ unsigned long dictScan(dict *d,
  * 根据需要，初始化字典（的哈希表），或者对字典（的现有哈希表）进行扩展
  *
  * T = O(N)
- */
+ *//////
 static int _dictExpandIfNeeded(dict *d)
 {
     /* Incremental rehashing already in progress. Return. */
@@ -1430,7 +1430,7 @@ static int _dictExpandIfNeeded(dict *d)
  * 计算第一个大于等于 size 的 2 的 N 次方，用作哈希表的值
  *
  * T = O(1)
- */
+ */////
 static unsigned long _dictNextPower(unsigned long size)
 {
     unsigned long i = DICT_HT_INITIAL_SIZE;
@@ -1517,7 +1517,7 @@ void dictEmpty(dict *d, void(callback)(void*)) {
  * 开启自动 rehash
  *
  * T = O(1)
- */
+ *////
 void dictEnableResize(void) {
     dict_can_resize = 1;
 }
@@ -1526,7 +1526,7 @@ void dictEnableResize(void) {
  * 关闭自动 rehash
  *
  * T = O(1)
- */
+ *////
 void dictDisableResize(void) {
     dict_can_resize = 0;
 }

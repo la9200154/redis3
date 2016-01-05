@@ -37,18 +37,18 @@
 #include "zmalloc.h"
 
 /*
- * æ ¹æ®ç»™å®šçš„åˆå§‹åŒ–å­—ç¬¦ä¸² init å’Œå­—ç¬¦ä¸²é•¿åº¦ initlen
- * åˆ›å»ºä¸€ä¸ªæ–°çš„ sds
+ * ¸ù¾İ¸ø¶¨µÄ³õÊ¼»¯×Ö·û´® init ºÍ×Ö·û´®³¤¶È initlen
+ * ´´½¨Ò»¸öĞÂµÄ sds
  *
- * å‚æ•°
- *  init ï¼šåˆå§‹åŒ–å­—ç¬¦ä¸²æŒ‡é’ˆ
- *  initlen ï¼šåˆå§‹åŒ–å­—ç¬¦ä¸²çš„é•¿åº¦
+ * ²ÎÊı
+ *  init £º³õÊ¼»¯×Ö·û´®Ö¸Õë
+ *  initlen £º³õÊ¼»¯×Ö·û´®µÄ³¤¶È
  *
- * è¿”å›å€¼
- *  sds ï¼šåˆ›å»ºæˆåŠŸè¿”å› sdshdr ç›¸å¯¹åº”çš„ sds
- *        åˆ›å»ºå¤±è´¥è¿”å› NULL
+ * ·µ»ØÖµ
+ *  sds £º´´½¨³É¹¦·µ»Ø sdshdr Ïà¶ÔÓ¦µÄ sds
+ *        ´´½¨Ê§°Ü·µ»Ø NULL
  *
- * å¤æ‚åº¦
+ * ¸´ÔÓ¶È
  *  T = O(N)
  */
 /* Create a new sds string with the content specified by the 'init' pointer
@@ -63,46 +63,46 @@
  * You can print the string with printf() as there is an implicit \0 at the
  * end of the string. However the string is binary safe and can contain
  * \0 characters in the middle, as the length is stored in the sds header. */
-sds sdsnewlen(const void *init, size_t initlen) {
+sds sdsnewlen(const void *init, size_t initlen) {///
 
     struct sdshdr *sh;
 
-    // æ ¹æ®æ˜¯å¦æœ‰åˆå§‹åŒ–å†…å®¹ï¼Œé€‰æ‹©é€‚å½“çš„å†…å­˜åˆ†é…æ–¹å¼
+    // ¸ù¾İÊÇ·ñÓĞ³õÊ¼»¯ÄÚÈİ£¬Ñ¡ÔñÊÊµ±µÄÄÚ´æ·ÖÅä·½Ê½
     // T = O(N)
     if (init) {
-        // zmalloc ä¸åˆå§‹åŒ–æ‰€åˆ†é…çš„å†…å­˜
+        // zmalloc ²»³õÊ¼»¯Ëù·ÖÅäµÄÄÚ´æ
         sh = zmalloc(sizeof(struct sdshdr)+initlen+1);
     } else {
-        // zcalloc å°†åˆ†é…çš„å†…å­˜å…¨éƒ¨åˆå§‹åŒ–ä¸º 0
+        // zcalloc ½«·ÖÅäµÄÄÚ´æÈ«²¿³õÊ¼»¯Îª 0
         sh = zcalloc(sizeof(struct sdshdr)+initlen+1);
     }
 
-    // å†…å­˜åˆ†é…å¤±è´¥ï¼Œè¿”å›
+    // ÄÚ´æ·ÖÅäÊ§°Ü£¬·µ»Ø
     if (sh == NULL) return NULL;
 
-    // è®¾ç½®åˆå§‹åŒ–é•¿åº¦
+    // ÉèÖÃ³õÊ¼»¯³¤¶È
     sh->len = initlen;
-    // æ–° sds ä¸é¢„ç•™ä»»ä½•ç©ºé—´
+    // ĞÂ sds ²»Ô¤ÁôÈÎºÎ¿Õ¼ä
     sh->free = 0;
-    // å¦‚æœæœ‰æŒ‡å®šåˆå§‹åŒ–å†…å®¹ï¼Œå°†å®ƒä»¬å¤åˆ¶åˆ° sdshdr çš„ buf ä¸­
+    // Èç¹ûÓĞÖ¸¶¨³õÊ¼»¯ÄÚÈİ£¬½«ËüÃÇ¸´ÖÆµ½ sdshdr µÄ buf ÖĞ
     // T = O(N)
     if (initlen && init)
         memcpy(sh->buf, init, initlen);
-    // ä»¥ \0 ç»“å°¾
+    // ÒÔ \0 ½áÎ²
     sh->buf[initlen] = '\0';
 
-    // è¿”å› buf éƒ¨åˆ†ï¼Œè€Œä¸æ˜¯æ•´ä¸ª sdshdr
+    // ·µ»Ø buf ²¿·Ö£¬¶ø²»ÊÇÕû¸ö sdshdr
     return (char*)sh->buf;
 }
 
 /*
- * åˆ›å»ºå¹¶è¿”å›ä¸€ä¸ªåªä¿å­˜äº†ç©ºå­—ç¬¦ä¸² "" çš„ sds
+ * ´´½¨²¢·µ»ØÒ»¸öÖ»±£´æÁË¿Õ×Ö·û´® "" µÄ sds
  *
- * è¿”å›å€¼
- *  sds ï¼šåˆ›å»ºæˆåŠŸè¿”å› sdshdr ç›¸å¯¹åº”çš„ sds
- *        åˆ›å»ºå¤±è´¥è¿”å› NULL
+ * ·µ»ØÖµ
+ *  sds £º´´½¨³É¹¦·µ»Ø sdshdr Ïà¶ÔÓ¦µÄ sds
+ *        ´´½¨Ê§°Ü·µ»Ø NULL
  *
- * å¤æ‚åº¦
+ * ¸´ÔÓ¶È
  *  T = O(1)
  */
 /* Create an empty (zero length) sds string. Even in this case the string
@@ -112,53 +112,53 @@ sds sdsempty(void) {
 }
 
 /*
- * æ ¹æ®ç»™å®šå­—ç¬¦ä¸² init ï¼Œåˆ›å»ºä¸€ä¸ªåŒ…å«åŒæ ·å­—ç¬¦ä¸²çš„ sds
+ * ¸ù¾İ¸ø¶¨×Ö·û´® init £¬´´½¨Ò»¸ö°üº¬Í¬Ñù×Ö·û´®µÄ sds
  *
- * å‚æ•°
- *  init ï¼šå¦‚æœè¾“å…¥ä¸º NULL ï¼Œé‚£ä¹ˆåˆ›å»ºä¸€ä¸ªç©ºç™½ sds
- *         å¦åˆ™ï¼Œæ–°åˆ›å»ºçš„ sds ä¸­åŒ…å«å’Œ init å†…å®¹ç›¸åŒå­—ç¬¦ä¸²
+ * ²ÎÊı
+ *  init £ºÈç¹ûÊäÈëÎª NULL £¬ÄÇÃ´´´½¨Ò»¸ö¿Õ°× sds
+ *         ·ñÔò£¬ĞÂ´´½¨µÄ sds ÖĞ°üº¬ºÍ init ÄÚÈİÏàÍ¬×Ö·û´®
  *
- * è¿”å›å€¼
- *  sds ï¼šåˆ›å»ºæˆåŠŸè¿”å› sdshdr ç›¸å¯¹åº”çš„ sds
- *        åˆ›å»ºå¤±è´¥è¿”å› NULL
+ * ·µ»ØÖµ
+ *  sds £º´´½¨³É¹¦·µ»Ø sdshdr Ïà¶ÔÓ¦µÄ sds
+ *        ´´½¨Ê§°Ü·µ»Ø NULL
  *
- * å¤æ‚åº¦
+ * ¸´ÔÓ¶È
  *  T = O(N)
  */
 /* Create a new sds string starting from a null termined C string. */
-sds sdsnew(const char *init) {
+sds sdsnew(const char *init) {///
     size_t initlen = (init == NULL) ? 0 : strlen(init);
     return sdsnewlen(init, initlen);
 }
 
 /*
- * å¤åˆ¶ç»™å®š sds çš„å‰¯æœ¬
+ * ¸´ÖÆ¸ø¶¨ sds µÄ¸±±¾
  *
- * è¿”å›å€¼
- *  sds ï¼šåˆ›å»ºæˆåŠŸè¿”å›è¾“å…¥ sds çš„å‰¯æœ¬
- *        åˆ›å»ºå¤±è´¥è¿”å› NULL
+ * ·µ»ØÖµ
+ *  sds £º´´½¨³É¹¦·µ»ØÊäÈë sds µÄ¸±±¾
+ *        ´´½¨Ê§°Ü·µ»Ø NULL
  *
- * å¤æ‚åº¦
+ * ¸´ÔÓ¶È
  *  T = O(N)
  */
 /* Duplicate an sds string. */
-sds sdsdup(const sds s) {
+sds sdsdup(const sds s) {///
     return sdsnewlen(s, sdslen(s));
 }
 
 /*
- * é‡Šæ”¾ç»™å®šçš„ sds
+ * ÊÍ·Å¸ø¶¨µÄ sds
  *
- * å¤æ‚åº¦
+ * ¸´ÔÓ¶È
  *  T = O(N)
  */
 /* Free an sds string. No operation is performed if 's' is NULL. */
-void sdsfree(sds s) {
+void sdsfree(sds s) {///
     if (s == NULL) return;
     zfree(s-sizeof(struct sdshdr));
 }
 
-// æœªä½¿ç”¨å‡½æ•°ï¼Œå¯èƒ½å·²åºŸå¼ƒ
+// Î´Ê¹ÓÃº¯Êı£¬¿ÉÄÜÒÑ·ÏÆú
 /* Set the sds string length to the length as obtained with strlen(), so
  * considering as content only up to the first null term character.
  *
@@ -181,26 +181,26 @@ void sdsupdatelen(sds s) {
 }
 
 /*
- * åœ¨ä¸é‡Šæ”¾ SDS çš„å­—ç¬¦ä¸²ç©ºé—´çš„æƒ…å†µä¸‹ï¼Œ
- * é‡ç½® SDS æ‰€ä¿å­˜çš„å­—ç¬¦ä¸²ä¸ºç©ºå­—ç¬¦ä¸²ã€‚
+ * ÔÚ²»ÊÍ·Å SDS µÄ×Ö·û´®¿Õ¼äµÄÇé¿öÏÂ£¬
+ * ÖØÖÃ SDS Ëù±£´æµÄ×Ö·û´®Îª¿Õ×Ö·û´®¡£
  *
- * å¤æ‚åº¦
+ * ¸´ÔÓ¶È
  *  T = O(1)
  */
 /* Modify an sds string on-place to make it empty (zero length).
  * However all the existing buffer is not discarded but set as free space
  * so that next append operations will not require allocations up to the
  * number of bytes previously available. */
-void sdsclear(sds s) {
+void sdsclear(sds s) {///
 
-    // å–å‡º sdshdr
+    // È¡³ö sdshdr
     struct sdshdr *sh = (void*) (s-(sizeof(struct sdshdr)));
 
-    // é‡æ–°è®¡ç®—å±æ€§
+    // ÖØĞÂ¼ÆËãÊôĞÔ
     sh->free += sh->len;
     sh->len = 0;
 
-    // å°†ç»“æŸç¬¦æ”¾åˆ°æœ€å‰é¢ï¼ˆç›¸å½“äºæƒ°æ€§åœ°åˆ é™¤ buf ä¸­çš„å†…å®¹ï¼‰
+    // ½«½áÊø·û·Åµ½×îÇ°Ãæ£¨Ïàµ±ÓÚ¶èĞÔµØÉ¾³ı buf ÖĞµÄÄÚÈİ£©
     sh->buf[0] = '\0';
 }
 
@@ -211,65 +211,65 @@ void sdsclear(sds s) {
  * Note: this does not change the *length* of the sds string as returned
  * by sdslen(), but only the free buffer space we have. */
 /*
- * å¯¹ sds ä¸­ buf çš„é•¿åº¦è¿›è¡Œæ‰©å±•ï¼Œç¡®ä¿åœ¨å‡½æ•°æ‰§è¡Œä¹‹åï¼Œ
- * buf è‡³å°‘ä¼šæœ‰ addlen + 1 é•¿åº¦çš„ç©ºä½™ç©ºé—´
- * ï¼ˆé¢å¤–çš„ 1 å­—èŠ‚æ˜¯ä¸º \0 å‡†å¤‡çš„ï¼‰
+ * ¶Ô sds ÖĞ buf µÄ³¤¶È½øĞĞÀ©Õ¹£¬È·±£ÔÚº¯ÊıÖ´ĞĞÖ®ºó£¬
+ * buf ÖÁÉÙ»áÓĞ addlen + 1 ³¤¶ÈµÄ¿ÕÓà¿Õ¼ä
+ * £¨¶îÍâµÄ 1 ×Ö½ÚÊÇÎª \0 ×¼±¸µÄ£©
  *
- * è¿”å›å€¼
- *  sds ï¼šæ‰©å±•æˆåŠŸè¿”å›æ‰©å±•åçš„ sds
- *        æ‰©å±•å¤±è´¥è¿”å› NULL
+ * ·µ»ØÖµ
+ *  sds £ºÀ©Õ¹³É¹¦·µ»ØÀ©Õ¹ºóµÄ sds
+ *        À©Õ¹Ê§°Ü·µ»Ø NULL
  *
- * å¤æ‚åº¦
+ * ¸´ÔÓ¶È
  *  T = O(N)
  */
-sds sdsMakeRoomFor(sds s, size_t addlen) {
+sds sdsMakeRoomFor(sds s, size_t addlen) {///
 
     struct sdshdr *sh, *newsh;
 
-    // è·å– s ç›®å‰çš„ç©ºä½™ç©ºé—´é•¿åº¦
+    // »ñÈ¡ s Ä¿Ç°µÄ¿ÕÓà¿Õ¼ä³¤¶È
     size_t free = sdsavail(s);
 
     size_t len, newlen;
 
-    // s ç›®å‰çš„ç©ºä½™ç©ºé—´å·²ç»è¶³å¤Ÿï¼Œæ— é¡»å†è¿›è¡Œæ‰©å±•ï¼Œç›´æ¥è¿”å›
+    // s Ä¿Ç°µÄ¿ÕÓà¿Õ¼äÒÑ¾­×ã¹»£¬ÎŞĞëÔÙ½øĞĞÀ©Õ¹£¬Ö±½Ó·µ»Ø
     if (free >= addlen) return s;
 
-    // è·å– s ç›®å‰å·²å ç”¨ç©ºé—´çš„é•¿åº¦
+    // »ñÈ¡ s Ä¿Ç°ÒÑÕ¼ÓÃ¿Õ¼äµÄ³¤¶È
     len = sdslen(s);
     sh = (void*) (s-(sizeof(struct sdshdr)));
 
-    // s æœ€å°‘éœ€è¦çš„é•¿åº¦
+    // s ×îÉÙĞèÒªµÄ³¤¶È
     newlen = (len+addlen);
 
-    // æ ¹æ®æ–°é•¿åº¦ï¼Œä¸º s åˆ†é…æ–°ç©ºé—´æ‰€éœ€çš„å¤§å°
+    // ¸ù¾İĞÂ³¤¶È£¬Îª s ·ÖÅäĞÂ¿Õ¼äËùĞèµÄ´óĞ¡
     if (newlen < SDS_MAX_PREALLOC)
-        // å¦‚æœæ–°é•¿åº¦å°äº SDS_MAX_PREALLOC 
-        // é‚£ä¹ˆä¸ºå®ƒåˆ†é…ä¸¤å€äºæ‰€éœ€é•¿åº¦çš„ç©ºé—´
+        // Èç¹ûĞÂ³¤¶ÈĞ¡ÓÚ SDS_MAX_PREALLOC 
+        // ÄÇÃ´ÎªËü·ÖÅäÁ½±¶ÓÚËùĞè³¤¶ÈµÄ¿Õ¼ä
         newlen *= 2;
     else
-        // å¦åˆ™ï¼Œåˆ†é…é•¿åº¦ä¸ºç›®å‰é•¿åº¦åŠ ä¸Š SDS_MAX_PREALLOC
+        // ·ñÔò£¬·ÖÅä³¤¶ÈÎªÄ¿Ç°³¤¶È¼ÓÉÏ SDS_MAX_PREALLOC
         newlen += SDS_MAX_PREALLOC;
     // T = O(N)
     newsh = zrealloc(sh, sizeof(struct sdshdr)+newlen+1);
 
-    // å†…å­˜ä¸è¶³ï¼Œåˆ†é…å¤±è´¥ï¼Œè¿”å›
+    // ÄÚ´æ²»×ã£¬·ÖÅäÊ§°Ü£¬·µ»Ø
     if (newsh == NULL) return NULL;
 
-    // æ›´æ–° sds çš„ç©ºä½™é•¿åº¦
+    // ¸üĞÂ sds µÄ¿ÕÓà³¤¶È
     newsh->free = newlen - len;
 
-    // è¿”å› sds
+    // ·µ»Ø sds
     return newsh->buf;
 }
 
 /*
- * å›æ”¶ sds ä¸­çš„ç©ºé—²ç©ºé—´ï¼Œ
- * å›æ”¶ä¸ä¼šå¯¹ sds ä¸­ä¿å­˜çš„å­—ç¬¦ä¸²å†…å®¹åšä»»ä½•ä¿®æ”¹ã€‚
+ * »ØÊÕ sds ÖĞµÄ¿ÕÏĞ¿Õ¼ä£¬
+ * »ØÊÕ²»»á¶Ô sds ÖĞ±£´æµÄ×Ö·û´®ÄÚÈİ×öÈÎºÎĞŞ¸Ä¡£
  *
- * è¿”å›å€¼
- *  sds ï¼šå†…å­˜è°ƒæ•´åçš„ sds
+ * ·µ»ØÖµ
+ *  sds £ºÄÚ´æµ÷ÕûºóµÄ sds
  *
- * å¤æ‚åº¦
+ * ¸´ÔÓ¶È
  *  T = O(N)
  */
 /* Reallocate the sds string so that it has no free space at the end. The
@@ -278,25 +278,25 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
  *
  * After the call, the passed sds string is no longer valid and all the
  * references must be substituted with the new pointer returned by the call. */
-sds sdsRemoveFreeSpace(sds s) {
+sds sdsRemoveFreeSpace(sds s) {/////
     struct sdshdr *sh;
 
     sh = (void*) (s-(sizeof(struct sdshdr)));
 
-    // è¿›è¡Œå†…å­˜é‡åˆ†é…ï¼Œè®© buf çš„é•¿åº¦ä»…ä»…è¶³å¤Ÿä¿å­˜å­—ç¬¦ä¸²å†…å®¹
+    // ½øĞĞÄÚ´æÖØ·ÖÅä£¬ÈÃ buf µÄ³¤¶È½ö½ö×ã¹»±£´æ×Ö·û´®ÄÚÈİ
     // T = O(N)
     sh = zrealloc(sh, sizeof(struct sdshdr)+sh->len+1);
 
-    // ç©ºä½™ç©ºé—´ä¸º 0
+    // ¿ÕÓà¿Õ¼äÎª 0
     sh->free = 0;
 
     return sh->buf;
 }
 
 /*
- * è¿”å›ç»™å®š sds åˆ†é…çš„å†…å­˜å­—èŠ‚æ•°
+ * ·µ»Ø¸ø¶¨ sds ·ÖÅäµÄÄÚ´æ×Ö½ÚÊı
  *
- * å¤æ‚åº¦
+ * ¸´ÔÓ¶È
  *  T = O(1)
  */
 /* Return the total size of the allocation of the specifed sds string,
@@ -306,7 +306,7 @@ sds sdsRemoveFreeSpace(sds s) {
  * 3) The free buffer at the end if any.
  * 4) The implicit null term.
  */
-size_t sdsAllocSize(sds s) {
+size_t sdsAllocSize(sds s) {///
     struct sdshdr *sh = (void*) (s-(sizeof(struct sdshdr)));
 
     return sizeof(*sh)+sh->len+sh->free+1;
@@ -316,21 +316,21 @@ size_t sdsAllocSize(sds s) {
  * end of the string according to 'incr'. Also set the null term
  * in the new end of the string.
  *
- * æ ¹æ® incr å‚æ•°ï¼Œå¢åŠ  sds çš„é•¿åº¦ï¼Œç¼©å‡ç©ºä½™ç©ºé—´ï¼Œ
- * å¹¶å°† \0 æ”¾åˆ°æ–°å­—ç¬¦ä¸²çš„å°¾ç«¯
+ * ¸ù¾İ incr ²ÎÊı£¬Ôö¼Ó sds µÄ³¤¶È£¬Ëõ¼õ¿ÕÓà¿Õ¼ä£¬
+ * ²¢½« \0 ·Åµ½ĞÂ×Ö·û´®µÄÎ²¶Ë
  *
  * This function is used in order to fix the string length after the
  * user calls sdsMakeRoomFor(), writes something after the end of
  * the current string, and finally needs to set the new length.
  *
- * è¿™ä¸ªå‡½æ•°æ˜¯åœ¨è°ƒç”¨ sdsMakeRoomFor() å¯¹å­—ç¬¦ä¸²è¿›è¡Œæ‰©å±•ï¼Œ
- * ç„¶åç”¨æˆ·åœ¨å­—ç¬¦ä¸²å°¾éƒ¨å†™å…¥äº†æŸäº›å†…å®¹ä¹‹åï¼Œ
- * ç”¨æ¥æ­£ç¡®æ›´æ–° free å’Œ len å±æ€§çš„ã€‚
+ * Õâ¸öº¯ÊıÊÇÔÚµ÷ÓÃ sdsMakeRoomFor() ¶Ô×Ö·û´®½øĞĞÀ©Õ¹£¬
+ * È»ºóÓÃ»§ÔÚ×Ö·û´®Î²²¿Ğ´ÈëÁËÄ³Ğ©ÄÚÈİÖ®ºó£¬
+ * ÓÃÀ´ÕıÈ·¸üĞÂ free ºÍ len ÊôĞÔµÄ¡£
  *
  * Note: it is possible to use a negative increment in order to
  * right-trim the string.
  *
- * å¦‚æœ incr å‚æ•°ä¸ºè´Ÿæ•°ï¼Œé‚£ä¹ˆå¯¹å­—ç¬¦ä¸²è¿›è¡Œå³æˆªæ–­æ“ä½œã€‚
+ * Èç¹û incr ²ÎÊıÎª¸ºÊı£¬ÄÇÃ´¶Ô×Ö·û´®½øĞĞÓÒ½Ø¶Ï²Ù×÷¡£
  *
  * Usage example:
  *
@@ -338,7 +338,7 @@ size_t sdsAllocSize(sds s) {
  * following schema, to cat bytes coming from the kernel to the end of an
  * sds string without copying into an intermediate buffer:
  *
- * ä»¥ä¸‹æ˜¯ sdsIncrLen çš„ç”¨ä¾‹ï¼š
+ * ÒÔÏÂÊÇ sdsIncrLen µÄÓÃÀı£º
  *
  * oldlen = sdslen(s);
  * s = sdsMakeRoomFor(s, BUFFER_SIZE);
@@ -346,24 +346,24 @@ size_t sdsAllocSize(sds s) {
  * ... check for nread <= 0 and handle it ...
  * sdsIncrLen(s, nread);
  *
- * å¤æ‚åº¦
+ * ¸´ÔÓ¶È
  *  T = O(1)
  */
-void sdsIncrLen(sds s, int incr) {
+void sdsIncrLen(sds s, int incr) {///
     struct sdshdr *sh = (void*) (s-(sizeof(struct sdshdr)));
 
-    // ç¡®ä¿ sds ç©ºé—´è¶³å¤Ÿ
+    // È·±£ sds ¿Õ¼ä×ã¹»
     assert(sh->free >= incr);
 
-    // æ›´æ–°å±æ€§
+    // ¸üĞÂÊôĞÔ
     sh->len += incr;
     sh->free -= incr;
 
-    // è¿™ä¸ª assert å…¶å®å¯ä»¥å¿½ç•¥
-    // å› ä¸ºå‰ä¸€ä¸ª assert å·²ç»ç¡®ä¿ sh->free - incr >= 0 äº†
+    // Õâ¸ö assert ÆäÊµ¿ÉÒÔºöÂÔ
+    // ÒòÎªÇ°Ò»¸ö assert ÒÑ¾­È·±£ sh->free - incr >= 0 ÁË
     assert(sh->free >= 0);
 
-    // æ”¾ç½®æ–°çš„ç»“å°¾ç¬¦å·
+    // ·ÅÖÃĞÂµÄ½áÎ²·ûºÅ
     s[sh->len] = '\0';
 }
 
@@ -373,50 +373,50 @@ void sdsIncrLen(sds s, int incr) {
  * if the specified length is smaller than the current length, no operation
  * is performed. */
 /*
- * å°† sds æ‰©å……è‡³æŒ‡å®šé•¿åº¦ï¼Œæœªä½¿ç”¨çš„ç©ºé—´ä»¥ 0 å­—èŠ‚å¡«å……ã€‚
+ * ½« sds À©³äÖÁÖ¸¶¨³¤¶È£¬Î´Ê¹ÓÃµÄ¿Õ¼äÒÔ 0 ×Ö½ÚÌî³ä¡£
  *
- * è¿”å›å€¼
- *  sds ï¼šæ‰©å……æˆåŠŸè¿”å›æ–° sds ï¼Œå¤±è´¥è¿”å› NULL
+ * ·µ»ØÖµ
+ *  sds £ºÀ©³ä³É¹¦·µ»ØĞÂ sds £¬Ê§°Ü·µ»Ø NULL
  *
- * å¤æ‚åº¦ï¼š
+ * ¸´ÔÓ¶È£º
  *  T = O(N)
  */
-sds sdsgrowzero(sds s, size_t len) {
+sds sdsgrowzero(sds s, size_t len) {////
     struct sdshdr *sh = (void*)(s-(sizeof(struct sdshdr)));
     size_t totlen, curlen = sh->len;
 
-    // å¦‚æœ len æ¯”å­—ç¬¦ä¸²çš„ç°æœ‰é•¿åº¦å°ï¼Œ
-    // é‚£ä¹ˆç›´æ¥è¿”å›ï¼Œä¸åšåŠ¨ä½œ
+    // Èç¹û len ±È×Ö·û´®µÄÏÖÓĞ³¤¶ÈĞ¡£¬
+    // ÄÇÃ´Ö±½Ó·µ»Ø£¬²»×ö¶¯×÷
     if (len <= curlen) return s;
 
-    // æ‰©å±• sds
+    // À©Õ¹ sds
     // T = O(N)
     s = sdsMakeRoomFor(s,len-curlen);
-    // å¦‚æœå†…å­˜ä¸è¶³ï¼Œç›´æ¥è¿”å›
+    // Èç¹ûÄÚ´æ²»×ã£¬Ö±½Ó·µ»Ø
     if (s == NULL) return NULL;
 
     /* Make sure added region doesn't contain garbage */
-    // å°†æ–°åˆ†é…çš„ç©ºé—´ç”¨ 0 å¡«å……ï¼Œé˜²æ­¢å‡ºç°åƒåœ¾å†…å®¹
+    // ½«ĞÂ·ÖÅäµÄ¿Õ¼äÓÃ 0 Ìî³ä£¬·ÀÖ¹³öÏÖÀ¬»øÄÚÈİ
     // T = O(N)
     sh = (void*)(s-(sizeof(struct sdshdr)));
     memset(s+curlen,0,(len-curlen+1)); /* also set trailing \0 byte */
 
-    // æ›´æ–°å±æ€§
+    // ¸üĞÂÊôĞÔ
     totlen = sh->len+sh->free;
     sh->len = len;
     sh->free = totlen-sh->len;
 
-    // è¿”å›æ–°çš„ sds
+    // ·µ»ØĞÂµÄ sds
     return s;
 }
 
 /*
- * å°†é•¿åº¦ä¸º len çš„å­—ç¬¦ä¸² t è¿½åŠ åˆ° sds çš„å­—ç¬¦ä¸²æœ«å°¾
+ * ½«³¤¶ÈÎª len µÄ×Ö·û´® t ×·¼Óµ½ sds µÄ×Ö·û´®Ä©Î²
  *
- * è¿”å›å€¼
- *  sds ï¼šè¿½åŠ æˆåŠŸè¿”å›æ–° sds ï¼Œå¤±è´¥è¿”å› NULL
+ * ·µ»ØÖµ
+ *  sds £º×·¼Ó³É¹¦·µ»ØĞÂ sds £¬Ê§°Ü·µ»Ø NULL
  *
- * å¤æ‚åº¦
+ * ¸´ÔÓ¶È
  *  T = O(N)
  */
 /* Append the specified binary-safe string pointed by 't' of 'len' bytes to the
@@ -424,81 +424,81 @@ sds sdsgrowzero(sds s, size_t len) {
  *
  * After the call, the passed sds string is no longer valid and all the
  * references must be substituted with the new pointer returned by the call. */
-sds sdscatlen(sds s, const void *t, size_t len) {
+sds sdscatlen(sds s, const void *t, size_t len) {////
     
     struct sdshdr *sh;
     
-    // åŸæœ‰å­—ç¬¦ä¸²é•¿åº¦
+    // Ô­ÓĞ×Ö·û´®³¤¶È
     size_t curlen = sdslen(s);
 
-    // æ‰©å±• sds ç©ºé—´
+    // À©Õ¹ sds ¿Õ¼ä
     // T = O(N)
     s = sdsMakeRoomFor(s,len);
 
-    // å†…å­˜ä¸è¶³ï¼Ÿç›´æ¥è¿”å›
+    // ÄÚ´æ²»×ã£¿Ö±½Ó·µ»Ø
     if (s == NULL) return NULL;
 
-    // å¤åˆ¶ t ä¸­çš„å†…å®¹åˆ°å­—ç¬¦ä¸²åéƒ¨
+    // ¸´ÖÆ t ÖĞµÄÄÚÈİµ½×Ö·û´®ºó²¿
     // T = O(N)
     sh = (void*) (s-(sizeof(struct sdshdr)));
     memcpy(s+curlen, t, len);
 
-    // æ›´æ–°å±æ€§
+    // ¸üĞÂÊôĞÔ
     sh->len = curlen+len;
     sh->free = sh->free-len;
 
-    // æ·»åŠ æ–°ç»“å°¾ç¬¦å·
+    // Ìí¼ÓĞÂ½áÎ²·ûºÅ
     s[curlen+len] = '\0';
 
-    // è¿”å›æ–° sds
+    // ·µ»ØĞÂ sds
     return s;
 }
 
 /*
- * å°†ç»™å®šå­—ç¬¦ä¸² t è¿½åŠ åˆ° sds çš„æœ«å°¾
+ * ½«¸ø¶¨×Ö·û´® t ×·¼Óµ½ sds µÄÄ©Î²
  * 
- * è¿”å›å€¼
- *  sds ï¼šè¿½åŠ æˆåŠŸè¿”å›æ–° sds ï¼Œå¤±è´¥è¿”å› NULL
+ * ·µ»ØÖµ
+ *  sds £º×·¼Ó³É¹¦·µ»ØĞÂ sds £¬Ê§°Ü·µ»Ø NULL
  *
- * å¤æ‚åº¦
+ * ¸´ÔÓ¶È
  *  T = O(N)
  */
 /* Append the specified null termianted C string to the sds string 's'.
  *
  * After the call, the passed sds string is no longer valid and all the
  * references must be substituted with the new pointer returned by the call. */
-sds sdscat(sds s, const char *t) {
+sds sdscat(sds s, const char *t) {////
     return sdscatlen(s, t, strlen(t));
 }
 
 /*
- * å°†å¦ä¸€ä¸ª sds è¿½åŠ åˆ°ä¸€ä¸ª sds çš„æœ«å°¾
+ * ½«ÁíÒ»¸ö sds ×·¼Óµ½Ò»¸ö sds µÄÄ©Î²
  * 
- * è¿”å›å€¼
- *  sds ï¼šè¿½åŠ æˆåŠŸè¿”å›æ–° sds ï¼Œå¤±è´¥è¿”å› NULL
+ * ·µ»ØÖµ
+ *  sds £º×·¼Ó³É¹¦·µ»ØĞÂ sds £¬Ê§°Ü·µ»Ø NULL
  *
- * å¤æ‚åº¦
+ * ¸´ÔÓ¶È
  *  T = O(N)
  */
 /* Append the specified sds 't' to the existing sds 's'.
  *
  * After the call, the modified sds string is no longer valid and all the
  * references must be substituted with the new pointer returned by the call. */
-sds sdscatsds(sds s, const sds t) {
+sds sdscatsds(sds s, const sds t) {////
     return sdscatlen(s, t, sdslen(t));
 }
 
 /*
- * å°†å­—ç¬¦ä¸² t çš„å‰ len ä¸ªå­—ç¬¦å¤åˆ¶åˆ° sds s å½“ä¸­ï¼Œ
- * å¹¶åœ¨å­—ç¬¦ä¸²çš„æœ€åæ·»åŠ ç»ˆç»“ç¬¦ã€‚
+ * ½«×Ö·û´® t µÄÇ° len ¸ö×Ö·û¸´ÖÆµ½ sds s µ±ÖĞ£¬
+ * ²¢ÔÚ×Ö·û´®µÄ×îºóÌí¼ÓÖÕ½á·û¡£
  *
- * å¦‚æœ sds çš„é•¿åº¦å°‘äº len ä¸ªå­—ç¬¦ï¼Œé‚£ä¹ˆæ‰©å±• sds
+ * Èç¹û sds µÄ³¤¶ÈÉÙÓÚ len ¸ö×Ö·û£¬ÄÇÃ´À©Õ¹ sds
  *
- * å¤æ‚åº¦
+ * ¸´ÔÓ¶È
  *  T = O(N)
  *
- * è¿”å›å€¼
- *  sds ï¼šå¤åˆ¶æˆåŠŸè¿”å›æ–°çš„ sds ï¼Œå¦åˆ™è¿”å› NULL
+ * ·µ»ØÖµ
+ *  sds £º¸´ÖÆ³É¹¦·µ»ØĞÂµÄ sds £¬·ñÔò·µ»Ø NULL
  */
 /* Destructively modify the sds string 's' to hold the specified binary
  * safe string pointed by 't' of length 'len' bytes. */
@@ -506,10 +506,10 @@ sds sdscpylen(sds s, const char *t, size_t len) {
 
     struct sdshdr *sh = (void*) (s-(sizeof(struct sdshdr)));
 
-    // sds ç°æœ‰ buf çš„é•¿åº¦
+    // sds ÏÖÓĞ buf µÄ³¤¶È
     size_t totlen = sh->free+sh->len;
 
-    // å¦‚æœ s çš„ buf é•¿åº¦ä¸æ»¡è¶³ len ï¼Œé‚£ä¹ˆæ‰©å±•å®ƒ
+    // Èç¹û s µÄ buf ³¤¶È²»Âú×ã len £¬ÄÇÃ´À©Õ¹Ëü
     if (totlen < len) {
         // T = O(N)
         s = sdsMakeRoomFor(s,len-sh->len);
@@ -518,32 +518,32 @@ sds sdscpylen(sds s, const char *t, size_t len) {
         totlen = sh->free+sh->len;
     }
 
-    // å¤åˆ¶å†…å®¹
+    // ¸´ÖÆÄÚÈİ
     // T = O(N)
     memcpy(s, t, len);
 
-    // æ·»åŠ ç»ˆç»“ç¬¦å·
+    // Ìí¼ÓÖÕ½á·ûºÅ
     s[len] = '\0';
 
-    // æ›´æ–°å±æ€§
+    // ¸üĞÂÊôĞÔ
     sh->len = len;
     sh->free = totlen-len;
 
-    // è¿”å›æ–°çš„ sds
+    // ·µ»ØĞÂµÄ sds
     return s;
 }
 
 /*
- * å°†å­—ç¬¦ä¸²å¤åˆ¶åˆ° sds å½“ä¸­ï¼Œ
- * è¦†ç›–åŸæœ‰çš„å­—ç¬¦ã€‚
+ * ½«×Ö·û´®¸´ÖÆµ½ sds µ±ÖĞ£¬
+ * ¸²¸ÇÔ­ÓĞµÄ×Ö·û¡£
  *
- * å¦‚æœ sds çš„é•¿åº¦å°‘äºå­—ç¬¦ä¸²çš„é•¿åº¦ï¼Œé‚£ä¹ˆæ‰©å±• sds ã€‚
+ * Èç¹û sds µÄ³¤¶ÈÉÙÓÚ×Ö·û´®µÄ³¤¶È£¬ÄÇÃ´À©Õ¹ sds ¡£
  *
- * å¤æ‚åº¦
+ * ¸´ÔÓ¶È
  *  T = O(N)
  *
- * è¿”å›å€¼
- *  sds ï¼šå¤åˆ¶æˆåŠŸè¿”å›æ–°çš„ sds ï¼Œå¦åˆ™è¿”å› NULL
+ * ·µ»ØÖµ
+ *  sds £º¸´ÖÆ³É¹¦·µ»ØĞÂµÄ sds £¬·ñÔò·µ»Ø NULL
  */
 /* Like sdscpylen() but 't' must be a null-termined string so that the length
  * of the string is obtained with strlen(). */
@@ -622,7 +622,7 @@ int sdsull2str(char *s, unsigned long long v) {
  *
  * sdscatprintf(sdsempty(),"%lld\n", value);
  */
-// æ ¹æ®è¾“å…¥çš„ long long å€¼ value ï¼Œåˆ›å»ºä¸€ä¸ª SDS
+// ¸ù¾İÊäÈëµÄ long long Öµ value £¬´´½¨Ò»¸ö SDS
 sds sdsfromlonglong(long long value) {
     char buf[SDS_LLSTR_SIZE];
     int len = sdsll2str(buf,value);
@@ -631,7 +631,7 @@ sds sdsfromlonglong(long long value) {
 }
 
 /* 
- * æ‰“å°å‡½æ•°ï¼Œè¢« sdscatprintf æ‰€è°ƒç”¨
+ * ´òÓ¡º¯Êı£¬±» sdscatprintf Ëùµ÷ÓÃ
  *
  * T = O(N^2)
  */
@@ -674,7 +674,7 @@ sds sdscatvprintf(sds s, const char *fmt, va_list ap) {
 }
 
 /*
- * æ‰“å°ä»»æ„æ•°é‡ä¸ªå­—ç¬¦ä¸²ï¼Œå¹¶å°†è¿™äº›å­—ç¬¦ä¸²è¿½åŠ åˆ°ç»™å®š sds çš„æœ«å°¾
+ * ´òÓ¡ÈÎÒâÊıÁ¿¸ö×Ö·û´®£¬²¢½«ÕâĞ©×Ö·û´®×·¼Óµ½¸ø¶¨ sds µÄÄ©Î²
  *
  * T = O(N^2)
  */
@@ -821,12 +821,12 @@ sds sdscatfmt(sds s, char const *fmt, ...) {
 }
 
 /*
- * å¯¹ sds å·¦å³ä¸¤ç«¯è¿›è¡Œä¿®å‰ªï¼Œæ¸…é™¤å…¶ä¸­ cset æŒ‡å®šçš„æ‰€æœ‰å­—ç¬¦
+ * ¶Ô sds ×óÓÒÁ½¶Ë½øĞĞĞŞ¼ô£¬Çå³ıÆäÖĞ cset Ö¸¶¨µÄËùÓĞ×Ö·û
  *
- * æ¯”å¦‚ sdsstrim(xxyyabcyyxy, "xy") å°†è¿”å› "abc"
+ * ±ÈÈç sdsstrim(xxyyabcyyxy, "xy") ½«·µ»Ø "abc"
  *
- * å¤æ‚æ€§ï¼š
- *  T = O(M*N)ï¼ŒM ä¸º SDS é•¿åº¦ï¼Œ N ä¸º cset é•¿åº¦ã€‚
+ * ¸´ÔÓĞÔ£º
+ *  T = O(M*N)£¬M Îª SDS ³¤¶È£¬ N Îª cset ³¤¶È¡£
  */
 /* Remove the part of the string from left and from right composed just of
  * contiguous characters found in 'cset', that is a null terminted C string.
@@ -842,45 +842,45 @@ sds sdscatfmt(sds s, char const *fmt, ...) {
  *
  * Output will be just "Hello World".
  */
-sds sdstrim(sds s, const char *cset) {
+sds sdstrim(sds s, const char *cset) {////
     struct sdshdr *sh = (void*) (s-(sizeof(struct sdshdr)));
     char *start, *end, *sp, *ep;
     size_t len;
 
-    // è®¾ç½®å’Œè®°å½•æŒ‡é’ˆ
+    // ÉèÖÃºÍ¼ÇÂ¼Ö¸Õë
     sp = start = s;
     ep = end = s+sdslen(s)-1;
 
-    // ä¿®å‰ª, T = O(N^2)
+    // ĞŞ¼ô, T = O(N^2)
     while(sp <= end && strchr(cset, *sp)) sp++;
     while(ep > start && strchr(cset, *ep)) ep--;
 
-    // è®¡ç®— trim å®Œæ¯•ä¹‹åå‰©ä½™çš„å­—ç¬¦ä¸²é•¿åº¦
+    // ¼ÆËã trim Íê±ÏÖ®ºóÊ£ÓàµÄ×Ö·û´®³¤¶È
     len = (sp > ep) ? 0 : ((ep-sp)+1);
     
-    // å¦‚æœæœ‰éœ€è¦ï¼Œå‰ç§»å­—ç¬¦ä¸²å†…å®¹
+    // Èç¹ûÓĞĞèÒª£¬Ç°ÒÆ×Ö·û´®ÄÚÈİ
     // T = O(N)
     if (sh->buf != sp) memmove(sh->buf, sp, len);
 
-    // æ·»åŠ ç»ˆç»“ç¬¦
+    // Ìí¼ÓÖÕ½á·û
     sh->buf[len] = '\0';
 
-    // æ›´æ–°å±æ€§
+    // ¸üĞÂÊôĞÔ
     sh->free = sh->free+(sh->len-len);
     sh->len = len;
 
-    // è¿”å›ä¿®å‰ªåçš„ sds
+    // ·µ»ØĞŞ¼ôºóµÄ sds
     return s;
 }
 
 /*
- * æŒ‰ç´¢å¼•å¯¹æˆªå– sds å­—ç¬¦ä¸²çš„å…¶ä¸­ä¸€æ®µ
- * start å’Œ end éƒ½æ˜¯é—­åŒºé—´ï¼ˆåŒ…å«åœ¨å†…ï¼‰
+ * °´Ë÷Òı¶Ô½ØÈ¡ sds ×Ö·û´®µÄÆäÖĞÒ»¶Î
+ * start ºÍ end ¶¼ÊÇ±ÕÇø¼ä£¨°üº¬ÔÚÄÚ£©
  *
- * ç´¢å¼•ä» 0 å¼€å§‹ï¼Œæœ€å¤§ä¸º sdslen(s) - 1
- * ç´¢å¼•å¯ä»¥æ˜¯è´Ÿæ•°ï¼Œ sdslen(s) - 1 == -1
+ * Ë÷Òı´Ó 0 ¿ªÊ¼£¬×î´óÎª sdslen(s) - 1
+ * Ë÷Òı¿ÉÒÔÊÇ¸ºÊı£¬ sdslen(s) - 1 == -1
  *
- * å¤æ‚åº¦
+ * ¸´ÔÓ¶È
  *  T = O(N)
  */
 /* Turn the string into a smaller (or equal) string containing only the
@@ -924,20 +924,20 @@ void sdsrange(sds s, int start, int end) {
         start = 0;
     }
 
-    // å¦‚æœæœ‰éœ€è¦ï¼Œå¯¹å­—ç¬¦ä¸²è¿›è¡Œç§»åŠ¨
+    // Èç¹ûÓĞĞèÒª£¬¶Ô×Ö·û´®½øĞĞÒÆ¶¯
     // T = O(N)
     if (start && newlen) memmove(sh->buf, sh->buf+start, newlen);
 
-    // æ·»åŠ ç»ˆç»“ç¬¦
+    // Ìí¼ÓÖÕ½á·û
     sh->buf[newlen] = 0;
 
-    // æ›´æ–°å±æ€§
+    // ¸üĞÂÊôĞÔ
     sh->free = sh->free+(sh->len-newlen);
     sh->len = newlen;
 }
 
 /*
- * å°† sds å­—ç¬¦ä¸²ä¸­çš„æ‰€æœ‰å­—ç¬¦è½¬æ¢ä¸ºå°å†™
+ * ½« sds ×Ö·û´®ÖĞµÄËùÓĞ×Ö·û×ª»»ÎªĞ¡Ğ´
  *
  * T = O(N)
  */
@@ -949,7 +949,7 @@ void sdstolower(sds s) {
 }
 
 /*
- * å°† sds å­—ç¬¦ä¸²ä¸­çš„æ‰€æœ‰å­—ç¬¦è½¬æ¢ä¸ºå¤§å†™
+ * ½« sds ×Ö·û´®ÖĞµÄËùÓĞ×Ö·û×ª»»Îª´óĞ´
  *
  * T = O(N)
  */
@@ -961,10 +961,10 @@ void sdstoupper(sds s) {
 }
 
 /*
- * å¯¹æ¯”ä¸¤ä¸ª sds ï¼Œ strcmp çš„ sds ç‰ˆæœ¬
+ * ¶Ô±ÈÁ½¸ö sds £¬ strcmp µÄ sds °æ±¾
  *
- * è¿”å›å€¼
- *  int ï¼šç›¸ç­‰è¿”å› 0 ï¼Œs1 è¾ƒå¤§è¿”å›æ­£æ•°ï¼Œ s2 è¾ƒå¤§è¿”å›è´Ÿæ•°
+ * ·µ»ØÖµ
+ *  int £ºÏàµÈ·µ»Ø 0 £¬s1 ½Ï´ó·µ»ØÕıÊı£¬ s2 ½Ï´ó·µ»Ø¸ºÊı
  *
  * T = O(N)
  */
@@ -997,28 +997,28 @@ int sdscmp(const sds s1, const sds s2) {
  * of sds strings is returned. *count will be set
  * by reference to the number of tokens returned.
  *
- * ä½¿ç”¨åˆ†éš”ç¬¦ sep å¯¹ s è¿›è¡Œåˆ†å‰²ï¼Œè¿”å›ä¸€ä¸ª sds å­—ç¬¦ä¸²çš„æ•°ç»„ã€‚
- * *count ä¼šè¢«è®¾ç½®ä¸ºè¿”å›æ•°ç»„å…ƒç´ çš„æ•°é‡ã€‚
+ * Ê¹ÓÃ·Ö¸ô·û sep ¶Ô s ½øĞĞ·Ö¸î£¬·µ»ØÒ»¸ö sds ×Ö·û´®µÄÊı×é¡£
+ * *count »á±»ÉèÖÃÎª·µ»ØÊı×éÔªËØµÄÊıÁ¿¡£
  *
  * On out of memory, zero length string, zero length
  * separator, NULL is returned.
  *
- * å¦‚æœå‡ºç°å†…å­˜ä¸è¶³ã€å­—ç¬¦ä¸²é•¿åº¦ä¸º 0 æˆ–åˆ†éš”ç¬¦é•¿åº¦ä¸º 0
- * çš„æƒ…å†µï¼Œè¿”å› NULL
+ * Èç¹û³öÏÖÄÚ´æ²»×ã¡¢×Ö·û´®³¤¶ÈÎª 0 »ò·Ö¸ô·û³¤¶ÈÎª 0
+ * µÄÇé¿ö£¬·µ»Ø NULL
  *
  * Note that 'sep' is able to split a string using
  * a multi-character separator. For example
  * sdssplit("foo_-_bar","_-_"); will return two
  * elements "foo" and "bar".
  *
- * æ³¨æ„åˆ†éš”ç¬¦å¯ä»¥çš„æ˜¯åŒ…å«å¤šä¸ªå­—ç¬¦çš„å­—ç¬¦ä¸²
+ * ×¢Òâ·Ö¸ô·û¿ÉÒÔµÄÊÇ°üº¬¶à¸ö×Ö·ûµÄ×Ö·û´®
  *
  * This version of the function is binary-safe but
  * requires length arguments. sdssplit() is just the
  * same function but for zero-terminated strings.
  *
- * è¿™ä¸ªå‡½æ•°æ¥å— len å‚æ•°ï¼Œå› æ­¤å®ƒæ˜¯äºŒè¿›åˆ¶å®‰å…¨çš„ã€‚
- * ï¼ˆæ–‡æ¡£ä¸­æåˆ°çš„ sdssplit() å·²åºŸå¼ƒï¼‰
+ * Õâ¸öº¯Êı½ÓÊÜ len ²ÎÊı£¬Òò´ËËüÊÇ¶ş½øÖÆ°²È«µÄ¡£
+ * £¨ÎÄµµÖĞÌáµ½µÄ sdssplit() ÒÑ·ÏÆú£©
  *
  * T = O(N^2)
  */
@@ -1075,7 +1075,7 @@ cleanup:
 }
 
 /*
- * é‡Šæ”¾ tokens æ•°ç»„ä¸­ count ä¸ª sds
+ * ÊÍ·Å tokens Êı×éÖĞ count ¸ö sds
  *
  * T = O(N^2)
  */
@@ -1088,8 +1088,8 @@ void sdsfreesplitres(sds *tokens, int count) {
 }
 
 /*
- * å°†é•¿åº¦ä¸º len çš„å­—ç¬¦ä¸² p ä»¥å¸¦å¼•å·ï¼ˆquotedï¼‰çš„æ ¼å¼
- * è¿½åŠ åˆ°ç»™å®š sds çš„æœ«å°¾
+ * ½«³¤¶ÈÎª len µÄ×Ö·û´® p ÒÔ´øÒıºÅ£¨quoted£©µÄ¸ñÊ½
+ * ×·¼Óµ½¸ø¶¨ sds µÄÄ©Î²
  *
  * T = O(N)
  */
@@ -1130,7 +1130,7 @@ sds sdscatrepr(sds s, const char *p, size_t len) {
 /* Helper function for sdssplitargs() that returns non zero if 'c'
  * is a valid hex digit. */
 /*
- * å¦‚æœ c ä¸ºåå…­è¿›åˆ¶ç¬¦å·çš„å…¶ä¸­ä¸€ä¸ªï¼Œè¿”å›æ­£æ•°
+ * Èç¹û c ÎªÊ®Áù½øÖÆ·ûºÅµÄÆäÖĞÒ»¸ö£¬·µ»ØÕıÊı
  *
  * T = O(1)
  */
@@ -1142,7 +1142,7 @@ int is_hex_digit(char c) {
 /* Helper function for sdssplitargs() that converts a hex digit into an
  * integer from 0 to 15 */
 /*
- * å°†åå…­è¿›åˆ¶ç¬¦å·è½¬æ¢ä¸º 10 è¿›åˆ¶
+ * ½«Ê®Áù½øÖÆ·ûºÅ×ª»»Îª 10 ½øÖÆ
  *
  * T = O(1)
  */
@@ -1171,38 +1171,38 @@ int hex_digit_to_int(char c) {
 /* Split a line into arguments, where every argument can be in the
  * following programming-language REPL-alike form:
  *
- * å°†ä¸€è¡Œæ–‡æœ¬åˆ†å‰²æˆå¤šä¸ªå‚æ•°ï¼Œæ¯ä¸ªå‚æ•°å¯ä»¥æœ‰ä»¥ä¸‹çš„ç±»ç¼–ç¨‹è¯­è¨€ REPL æ ¼å¼ï¼š
+ * ½«Ò»ĞĞÎÄ±¾·Ö¸î³É¶à¸ö²ÎÊı£¬Ã¿¸ö²ÎÊı¿ÉÒÔÓĞÒÔÏÂµÄÀà±à³ÌÓïÑÔ REPL ¸ñÊ½£º
  *
  * foo bar "newline are supported\n" and "\xff\x00otherstuff"
  *
  * The number of arguments is stored into *argc, and an array
  * of sds is returned.
  *
- * å‚æ•°çš„ä¸ªæ•°ä¼šä¿å­˜åœ¨ *argc ä¸­ï¼Œå‡½æ•°è¿”å›ä¸€ä¸ª sds æ•°ç»„ã€‚
+ * ²ÎÊıµÄ¸öÊı»á±£´æÔÚ *argc ÖĞ£¬º¯Êı·µ»ØÒ»¸ö sds Êı×é¡£
  *
  * The caller should free the resulting array of sds strings with
  * sdsfreesplitres().
  *
- * è°ƒç”¨è€…åº”è¯¥ä½¿ç”¨ sdsfreesplitres() æ¥é‡Šæ”¾å‡½æ•°è¿”å›çš„ sds æ•°ç»„ã€‚
+ * µ÷ÓÃÕßÓ¦¸ÃÊ¹ÓÃ sdsfreesplitres() À´ÊÍ·Åº¯Êı·µ»ØµÄ sds Êı×é¡£
  *
  * Note that sdscatrepr() is able to convert back a string into
  * a quoted string in the same format sdssplitargs() is able to parse.
  *
- * sdscatrepr() å¯ä»¥å°†ä¸€ä¸ªå­—ç¬¦ä¸²è½¬æ¢ä¸ºä¸€ä¸ªå¸¦å¼•å·ï¼ˆquotedï¼‰çš„å­—ç¬¦ä¸²ï¼Œ
- * è¿™ä¸ªå¸¦å¼•å·çš„å­—ç¬¦ä¸²å¯ä»¥è¢« sdssplitargs() åˆ†æã€‚
+ * sdscatrepr() ¿ÉÒÔ½«Ò»¸ö×Ö·û´®×ª»»ÎªÒ»¸ö´øÒıºÅ£¨quoted£©µÄ×Ö·û´®£¬
+ * Õâ¸ö´øÒıºÅµÄ×Ö·û´®¿ÉÒÔ±» sdssplitargs() ·ÖÎö¡£
  *
  * The function returns the allocated tokens on success, even when the
  * input string is empty, or NULL if the input contains unbalanced
  * quotes or closed quotes followed by non space characters
  * as in: "foo"bar or "foo'
  *
- * å³ä½¿è¾“å…¥å‡ºç°ç©ºå­—ç¬¦ä¸²ï¼Œ NULL ï¼Œæˆ–è€…è¾“å…¥å¸¦æœ‰æœªå¯¹åº”çš„æ‹¬å·ï¼Œ
- * å‡½æ•°éƒ½ä¼šå°†å·²æˆåŠŸå¤„ç†çš„å­—ç¬¦ä¸²å…ˆè¿”å›ã€‚
+ * ¼´Ê¹ÊäÈë³öÏÖ¿Õ×Ö·û´®£¬ NULL £¬»òÕßÊäÈë´øÓĞÎ´¶ÔÓ¦µÄÀ¨ºÅ£¬
+ * º¯Êı¶¼»á½«ÒÑ³É¹¦´¦ÀíµÄ×Ö·û´®ÏÈ·µ»Ø¡£
  *
- * è¿™ä¸ªå‡½æ•°ä¸»è¦ç”¨äº config.c ä¸­å¯¹é…ç½®æ–‡ä»¶è¿›è¡Œåˆ†æã€‚
- * ä¾‹å­ï¼š
+ * Õâ¸öº¯ÊıÖ÷ÒªÓÃÓÚ config.c ÖĞ¶ÔÅäÖÃÎÄ¼ş½øĞĞ·ÖÎö¡£
+ * Àı×Ó£º
  *  sds *arr = sdssplitargs("timeout 10086\r\nport 123321\r\n");
- * ä¼šå¾—å‡º
+ * »áµÃ³ö
  *  arr[0] = "timeout"
  *  arr[1] = "10086"
  *  arr[2] = "port"
@@ -1219,7 +1219,7 @@ sds *sdssplitargs(const char *line, int *argc) {
     while(1) {
 
         /* skip blanks */
-        // è·³è¿‡ç©ºç™½
+        // Ìø¹ı¿Õ°×
         // T = O(N)
         while(*p && isspace(*p)) p++;
 
@@ -1331,30 +1331,30 @@ err:
  * characters specified in the 'from' string to the corresponding character
  * in the 'to' array.
  *
- * å°†å­—ç¬¦ä¸² s ä¸­ï¼Œ
- * æ‰€æœ‰åœ¨ from ä¸­å‡ºç°çš„å­—ç¬¦ï¼Œæ›¿æ¢æˆ to ä¸­çš„å­—ç¬¦
+ * ½«×Ö·û´® s ÖĞ£¬
+ * ËùÓĞÔÚ from ÖĞ³öÏÖµÄ×Ö·û£¬Ìæ»»³É to ÖĞµÄ×Ö·û
  *
  * For instance: sdsmapchars(mystring, "ho", "01", 2)
  * will have the effect of turning the string "hello" into "0ell1".
  *
- * æ¯”å¦‚è°ƒç”¨ sdsmapchars(mystring, "ho", "01", 2)
- * å°±ä¼šå°† "hello" è½¬æ¢ä¸º "0ell1"
+ * ±ÈÈçµ÷ÓÃ sdsmapchars(mystring, "ho", "01", 2)
+ * ¾Í»á½« "hello" ×ª»»Îª "0ell1"
  *
  * The function returns the sds string pointer, that is always the same
  * as the input pointer since no resize is needed. 
- * å› ä¸ºæ— é¡»å¯¹ sds è¿›è¡Œå¤§å°è°ƒæ•´ï¼Œ
- * æ‰€ä»¥è¿”å›çš„ sds è¾“å…¥çš„ sds ä¸€æ ·
+ * ÒòÎªÎŞĞë¶Ô sds ½øĞĞ´óĞ¡µ÷Õû£¬
+ * ËùÒÔ·µ»ØµÄ sds ÊäÈëµÄ sds Ò»Ñù
  *
  * T = O(N^2)
  */
 sds sdsmapchars(sds s, const char *from, const char *to, size_t setlen) {
     size_t j, i, l = sdslen(s);
 
-    // éå†è¾“å…¥å­—ç¬¦ä¸²
+    // ±éÀúÊäÈë×Ö·û´®
     for (j = 0; j < l; j++) {
-        // éå†æ˜ å°„
+        // ±éÀúÓ³Éä
         for (i = 0; i < setlen; i++) {
-            // æ›¿æ¢å­—ç¬¦ä¸²
+            // Ìæ»»×Ö·û´®
             if (s[j] == from[i]) {
                 s[j] = to[i];
                 break;
